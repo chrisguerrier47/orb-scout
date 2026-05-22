@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ORB Scout">
+<meta name="theme-color" content="#0a0c0f">
+<title>ORB Scout — Opening Range Breakout Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #0a0c0f;
+  --bg1: #111418;
+  --bg2: #181c22;
+  --bg3: #1e242c;
+  --bg4: #252d38;
+  --border: rgba(255,255,255,0.07);
+  --border-hi: rgba(255,255,255,0.14);
+  --text: #e8eaed;
+  --text2: #8a9ab0;
+  --text3: #4e5d70;
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.12);
+  --green-border: rgba(34,197,94,0.3);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --red-border: rgba(239,68,68,0.3);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --amber-border: rgba(245,158,11,0.3);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --blue-border: rgba(59,130,246,0.3);
+  --accent: #22c55e;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg0);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+/* ── Layout ── */
+.app { display: flex; flex-direction: column; min-height: 100dvh; }
+
+/* ── Header ── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg0);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; gap: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 32px; height: 32px;
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green); font-size: 16px;
+}
+.brand-name { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.brand-name span { color: var(--green); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.status-pill {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 11px; color: var(--text2);
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 10px;
+}
+.pulse { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.pulse-green { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+.pulse-amber { background: var(--amber); }
+.pulse-off { background: var(--text3); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+#clock { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+
+/* ── Nav tabs ── */
+.nav {
+  display: flex; overflow-x: auto; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg0);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  color: var(--text3); border: none; background: none;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: var(--sans);
+}
+.nav-tab i { font-size: 14px; }
+.nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+.nav-tab:not(.active):hover { color: var(--text); }
+.badge-count {
+  font-size: 10px; font-family: var(--mono);
+  background: var(--amber-dim); color: var(--amber);
+  border: 1px solid var(--amber-border);
+  border-radius: 10px; padding: 1px 5px; min-width: 18px; text-align: center;
+}
+
+/* ── Content ── */
+.content { flex: 1; padding: 16px; max-width: 800px; margin: 0 auto; width: 100%; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Metric grid ── */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.metric {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px;
+}
+.metric-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 700; line-height: 1; }
+.metric-sub { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 3px; }
+.c-green { color: var(--green); }
+.c-red { color: var(--red); }
+.c-amber { color: var(--amber); }
+.c-blue { color: var(--blue); }
+.c-text { color: var(--text); }
+
+/* ── Section header ── */
+.sec-hd {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 10px; margin-top: 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sec-hd:first-child { margin-top: 0; }
+
+/* ── Watchlist chips ── */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.chip {
+  font-family: var(--mono); font-size: 11px;
+  padding: 4px 10px; border-radius: 20px;
+  border: 1px solid var(--border); color: var(--text2);
+  background: var(--bg2);
+}
+.chip.fav { border-color: var(--amber-border); color: var(--amber); background: var(--amber-dim); }
+
+/* ── Info banner ── */
+.banner {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--blue-dim); border: 1px solid var(--blue-border);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px;
+  font-size: 13px; color: #93c5fd; line-height: 1.6;
+}
+.banner i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Signal card ── */
+.signal-card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); margin-bottom: 12px;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.signal-card.long { border-left: 3px solid var(--green); }
+.signal-card.short { border-left: 3px solid var(--red); }
+.sig-header { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.sig-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.sig-sym { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.sig-name { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 2px; }
+.sig-price { text-align: right; }
+.sig-pr-val { font-size: 20px; font-weight: 700; font-family: var(--mono); }
+.sig-pr-lbl { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.badge {
+  font-size: 10px; font-family: var(--mono); font-weight: 500;
+  padding: 2px 8px; border-radius: 20px; border: 1px solid;
+  display: inline-flex; align-items: center; gap: 3px;
+}
+.badge-green { background: var(--green-dim); border-color: var(--green-border); color: var(--green); }
+.badge-red { background: var(--red-dim); border-color: var(--red-border); color: var(--red); }
+.badge-amber { background: var(--amber-dim); border-color: var(--amber-border); color: var(--amber); }
+.badge-blue { background: var(--blue-dim); border-color: var(--blue-border); color: var(--blue); }
+.badge-gray { background: var(--bg3); border-color: var(--border-hi); color: var(--text2); }
+.sig-body { padding: 12px 16px; }
+.sig-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+@media (max-width: 420px) { .sig-grid { grid-template-columns: repeat(2, 1fr); } }
+.sig-field-label { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+.sig-field-value { font-size: 14px; font-weight: 600; font-family: var(--mono); }
+.sig-field-sub { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+/* ── Score bars ── */
+.score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.score-lbl { font-family: var(--mono); font-size: 10px; color: var(--text3); width: 88px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.score-bar { flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+.fill-green { background: var(--green); }
+.fill-amber { background: var(--amber); }
+.fill-red { background: var(--red); }
+.score-num { font-family: var(--mono); font-size: 11px; font-weight: 500; width: 28px; text-align: right; }
+
+/* ── Checklist ── */
+.checks { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 12px; }
+.chk { display: flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 11px; }
+.chk.ok { color: var(--green); }
+.chk.warn { color: var(--amber); }
+.chk.ng { color: var(--red); }
+
+/* ── Instruction box ── */
+.ins-box {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 12px;
+  font-size: 12px; color: var(--text2); line-height: 1.6;
+  margin-bottom: 12px;
+}
+.ins-box strong { color: var(--text); }
+
+/* ── Action row ── */
+.act-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg2); }
+.btn {
+  padding: 8px 14px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: 1px solid; font-family: var(--sans);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.btn i { font-size: 14px; }
+.btn-green { background: var(--green-dim); border-color: var(--green-border); color: var(--green); }
+.btn-green:active { background: rgba(34,197,94,0.22); }
+.btn-red { background: var(--red-dim); border-color: var(--red-border); color: var(--red); }
+.btn-red:active { background: rgba(239,68,68,0.22); }
+.btn-ghost { background: var(--bg3); border-color: var(--border-hi); color: var(--text2); }
+.btn-ghost:active { background: var(--bg4); }
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* ── Options brief ── */
+.opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+@media (max-width: 400px) { .opt-grid { grid-template-columns: 1fr; } }
+.opt-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.opt-hd { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.opt-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.opt-row:last-child { border-bottom: none; }
+.opt-key { color: var(--text3); }
+.opt-val { color: var(--text); font-weight: 500; }
+
+/* ── Swing card ── */
+.swing-card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); margin-bottom: 10px; overflow: hidden;
+}
+.swing-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.swing-body { padding: 12px 14px; }
+.swing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+@media (max-width: 380px) { .swing-grid { grid-template-columns: repeat(2,1fr); } }
+.thesis { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; font-family: var(--mono); }
+.conf-bar-wrap { margin-bottom: 4px; }
+.conf-bar { height: 3px; background: var(--bg4); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+.conf-fill { height: 100%; border-radius: 2px; background: var(--green); }
+
+/* ── Journal ── */
+.journal-form { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+@media (max-width: 400px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+.form-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+input, select, textarea {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border-hi);
+  border-radius: var(--radius); color: var(--text); font-family: var(--mono);
+  font-size: 13px; padding: 8px 10px; outline: none;
+  -webkit-appearance: none; appearance: none;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus { border-color: var(--green); }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a9ab0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+.form-note { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 4px; }
+.hist-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.hist-row:last-child { border-bottom: none; }
+.hist-sym { font-weight: 700; font-size: 14px; min-width: 52px; }
+.hist-type { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.hist-meta { flex: 1; font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.hist-pnl { font-family: var(--mono); font-size: 14px; font-weight: 600; text-align: right; }
+.hist-prices { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text3); font-family: var(--mono); font-size: 12px; }
+.empty-state i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+/* ── Config ── */
+.config-card { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+.config-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.config-title i { color: var(--text3); font-size: 16px; }
+.cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 400px) { .cfg-grid { grid-template-columns: 1fr; } }
+.cfg-item {}
+.cfg-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.cfg-val { font-size: 14px; font-weight: 600; color: var(--text); }
+.cfg-sub { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 1px; }
+.range-row { display: flex; align-items: center; gap: 8px; }
+input[type=range] {
+  flex: 1; height: 4px; border-radius: 2px; padding: 0; border: none;
+  background: var(--bg4); accent-color: var(--green); cursor: pointer;
+}
+.range-out { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--green); min-width: 32px; text-align: right; }
+.data-source { display: flex; gap: 12px; align-items: flex-start; }
+.data-source i { font-size: 20px; color: var(--text3); flex-shrink: 0; margin-top: 2px; }
+.data-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.data-desc { font-family: var(--mono); font-size: 12px; color: var(--text2); line-height: 1.7; }
+
+/* ── Scan button ── */
+.scan-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--green-dim); border: 1px solid var(--green-border);
+  color: var(--green); border-radius: var(--radius);
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: var(--sans);
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.scan-btn:active { background: rgba(34,197,94,0.22); }
+.scan-btn.scanning { animation: scanning-pulse 1s ease-in-out infinite; }
+@keyframes scanning-pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+.scan-btn i { font-size: 15px; }
+
+/* ── Mini candle chart ── */
+.candle-wrap { width: 100%; height: 56px; display: block; margin: 10px 0; }
+
+/* ── Sofi hint ── */
+.sofi-hint {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg3); border: 1px solid var(--border-hi);
+  border-radius: 20px; padding: 4px 12px;
+  font-family: var(--mono); font-size: 11px; color: var(--text2);
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--bg3); border: 1px solid var(--border-hi);
+  border-radius: var(--radius); padding: 10px 16px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  z-index: 999; transition: transform 0.3s ease; white-space: nowrap;
+  max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.toast-green { border-color: var(--green-border); color: var(--green); }
+.toast.toast-red { border-color: var(--red-border); color: var(--red); }
+
+/* ── Activity log ── */
+.log-box { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; max-height: 200px; overflow-y: auto; font-family: var(--mono); font-size: 11px; }
+.log-line { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px solid var(--border); }
+.log-line:last-child { border-bottom: none; }
+.log-t { color: var(--text3); flex-shrink: 0; width: 48px; }
+.log-ok { color: var(--green); }
+.log-warn { color: var(--amber); }
+.log-err { color: var(--red); }
+.log-info { color: var(--text2); }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ── Responsive tweaks ── */
+@media (max-width: 360px) {
+  .header { padding: 0 12px; }
+  .content { padding: 12px; }
+  .nav-tab { padding: 10px 12px; font-size: 12px; }
+  .brand-name { font-size: 13px; }
+}
+@media (min-width: 600px) {
+  .content { padding: 20px; }
+  .metrics { grid-template-columns: repeat(5, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="brand">
+    <div class="brand-mark"><i class="ti ti-chart-candle"></i></div>
+    <div class="brand-name">ORB<span>Scout</span></div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill">
+      <div class="pulse pulse-amber" id="status-dot"></div>
+      <span id="status-text">Pre-market</span>
+    </div>
+    <span id="clock" style="display:none"></span>
+  </div>
+</header>
+
+<!-- ── Nav ── -->
+<nav class="nav">
+  <button class="nav-tab active" onclick="switchTab('signals',this)" data-tab="signals">
+    <i class="ti ti-radar"></i> Signals <span class="badge-count" id="badge-signals" style="display:none">0</span>
+  </button>
+  <button class="nav-tab" onclick="switchTab('options',this)" data-tab="options">
+    <i class="ti ti-trending-up"></i> Options
+  </button>
+  <button class="nav-tab" onclick="switchTab('swing',this)" data-tab="swing">
+    <i class="ti ti-calendar-stats"></i> Swing
+  </button>
+  <button class="nav-tab" onclick="switchTab('journal',this)" data-tab="journal">
+    <i class="ti ti-notebook"></i> Journal
+  </button>
+  <button class="nav-tab" onclick="switchTab('config',this)" data-tab="config">
+    <i class="ti ti-settings"></i> Config
+  </button>
+</nav>
+
+<!-- ── Content ── -->
+<main class="content">
+
+<!-- ════════════════ SIGNALS ════════════════ -->
+<div class="tab-panel active" id="tab-signals">
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Scanned</div>
+      <div class="metric-value c-text" id="m-scanned">0</div>
+      <div class="metric-sub">tickers</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Signals</div>
+      <div class="metric-value c-amber" id="m-signals">0</div>
+      <div class="metric-sub">found</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Approved</div>
+      <div class="metric-value c-green" id="m-approved">0</div>
+      <div class="metric-sub">this session</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Skipped</div>
+      <div class="metric-value c-text" id="m-skipped">0</div>
+      <div class="metric-sub">this session</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Win rate</div>
+      <div class="metric-value c-text" id="m-wr">—</div>
+      <div class="metric-sub">journal</div>
+    </div>
+  </div>
+
+  <div class="banner">
+    <i class="ti ti-info-circle"></i>
+    <div><strong>Manual trade mode — SoFi Investing.</strong> This bot is your analyst. When you approve a signal, open SoFi, find the ticker, and place your stock or options order using the parameters shown. Log the outcome in Journal.</div>
+  </div>
+
+  <div class="sec-hd">
+    <span>Watchlist — M–F · Yahoo Finance (free)</span>
+    <button class="scan-btn" id="scan-btn" onclick="runScan()">
+      <i class="ti ti-refresh" id="scan-icon"></i> <span id="scan-label">Scan now</span>
+    </button>
+  </div>
+
+  <div class="chips" id="watchlist-chips"></div>
+
+  <div class="sec-hd" style="margin-top:16px">
+    <span>Live signals — approve to log · trade manually in SoFi</span>
+  </div>
+
+  <div id="signals-container">
+    <div class="empty-state">
+      <i class="ti ti-radar"></i>
+      Tap "Scan now" to analyze the watchlist for ORB breakout setups
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ OPTIONS ════════════════ -->
+<div class="tab-panel" id="tab-options">
+  <div class="sec-hd">Options brief — generated when you approve a signal</div>
+  <div id="options-container">
+    <div class="empty-state">
+      <i class="ti ti-plant"></i>
+      Approve a signal first — the options play brief appears here
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SWING ════════════════ -->
+<div class="tab-panel" id="tab-swing">
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Candidates</div><div class="metric-value c-text" id="sw-count">0</div><div class="metric-sub">multi-day holds</div></div>
+    <div class="metric"><div class="metric-label">Avg confidence</div><div class="metric-value c-green" id="sw-conf">—</div><div class="metric-sub">score / 100</div></div>
+    <div class="metric"><div class="metric-label">Hold days</div><div class="metric-value c-text" id="sw-hold">3–5</div><div class="metric-sub">target range</div></div>
+  </div>
+  <div class="sec-hd">Swing setups — run a scan to populate</div>
+  <div id="swing-container">
+    <div class="empty-state">
+      <i class="ti ti-calendar-stats"></i>
+      Swing candidates appear after scanning
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ JOURNAL ════════════════ -->
+<div class="tab-panel" id="tab-journal">
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Total trades</div><div class="metric-value c-text" id="j-total">0</div></div>
+    <div class="metric"><div class="metric-label">Winners</div><div class="metric-value c-green" id="j-wins">0</div></div>
+    <div class="metric"><div class="metric-label">Losers</div><div class="metric-value c-red" id="j-losses">0</div></div>
+    <div class="metric"><div class="metric-label">Avg gain</div><div class="metric-value c-green" id="j-avg-gain">—</div></div>
+    <div class="metric"><div class="metric-label">Avg loss</div><div class="metric-value c-red" id="j-avg-loss">—</div></div>
+  </div>
+
+  <div class="sec-hd">Log a completed trade</div>
+  <div class="journal-form">
+    <div class="form-grid">
+      <div>
+        <div class="form-label">Ticker</div>
+        <input type="text" id="j-sym" placeholder="NVDA" autocapitalize="characters" autocomplete="off" spellcheck="false">
+      </div>
+      <div>
+        <div class="form-label">Trade type</div>
+        <select id="j-type">
+          <option value="stock-long">Stock — long</option>
+          <option value="stock-short">Stock — short</option>
+          <option value="call">Call option</option>
+          <option value="put">Put option</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid-3">
+      <div>
+        <div class="form-label">Entry $</div>
+        <input type="number" id="j-entry" placeholder="0.00" step="0.01" inputmode="decimal">
+      </div>
+      <div>
+        <div class="form-label">Exit $</div>
+        <input type="number" id="j-exit" placeholder="0.00" step="0.01" inputmode="decimal">
+      </div>
+      <div>
+        <div class="form-label">Qty / contracts</div>
+        <input type="number" id="j-qty" placeholder="1" step="1" inputmode="numeric">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="form-label">Notes (optional)</div>
+      <input type="text" id="j-notes" placeholder="e.g. took TP early, strong volume confirmation">
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="logTrade()"><i class="ti ti-plus"></i> Log trade</button>
+      <span id="j-msg" style="font-family:var(--mono);font-size:12px;color:var(--text3)"></span>
+    </div>
+  </div>
+
+  <div class="sec-hd">Trade history</div>
+  <div id="hist-container">
+    <div class="empty-state">
+      <i class="ti ti-notebook"></i>
+      No trades logged yet
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ CONFIG ════════════════ -->
+<div class="tab-panel" id="tab-config">
+  <div class="config-card">
+    <div class="config-title"><i class="ti ti-adjustments-horizontal"></i> Strategy parameters</div>
+    <div class="cfg-grid">
+      <div class="cfg-item">
+        <div class="cfg-label">ORB timeframe</div>
+        <div class="cfg-val">15 min</div>
+        <div class="cfg-sub">First candle 9:30–9:45 ET</div>
+      </div>
+      <div class="cfg-item">
+        <div class="cfg-label">Confirmation</div>
+        <div class="cfg-val">1 min</div>
+        <div class="cfg-sub">Candle close beyond ORB</div>
+      </div>
+      <div class="cfg-item">
+        <div class="cfg-label">Take profit (pts) — <span id="cfg-tp-lbl">20</span></div>
+        <div class="range-row">
+          <input type="range" min="10" max="40" value="20" step="1" oninput="updateCfg('tp',this.value)" id="cfg-tp">
+          <span class="range-out" id="cfg-tp-out">20</span>
+        </div>
+      </div>
+      <div class="cfg-item">
+        <div class="cfg-label">Stop loss (%) — <span id="cfg-sl-lbl">25</span></div>
+        <div class="range-row">
+          <input type="range" min="10" max="40" value="25" step="1" oninput="updateCfg('sl',this.value)" id="cfg-sl">
+          <span class="range-out" id="cfg-sl-out">25</span>
+        </div>
+      </div>
+      <div class="cfg-item">
+        <div class="cfg-label">Min vol ratio — <span id="cfg-vr-lbl">2</span>x</div>
+        <div class="range-row">
+          <input type="range" min="1" max="5" value="2" step="1" oninput="updateCfg('vr',this.value)" id="cfg-vr">
+          <span class="range-out" id="cfg-vr-out">2</span>
+        </div>
+      </div>
+      <div class="cfg-item">
+        <div class="cfg-label">Swing hold (days) — <span id="cfg-sh-lbl">3</span></div>
+        <div class="range-row">
+          <input type="range" min="1" max="10" value="3" step="1" oninput="updateCfg('sh',this.value)" id="cfg-sh">
+          <span class="range-out" id="cfg-sh-out">3</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <div class="config-title"><i class="ti ti-database"></i> Data source</div>
+    <div class="data-source">
+      <i class="ti ti-brand-yahoo"></i>
+      <div>
+        <div class="data-title">Yahoo Finance via yfinance — free, no API key required</div>
+        <div class="data-desc">
+          Real-time OHLCV candles · pre-market volume · options chain data<br>
+          ~2,000 req/hr limit · suitable for retail scanning<br><br>
+          <strong style="color:var(--text)">Upgrade path:</strong> Alpaca (free paper + live API) or Polygon.io for production-grade data feeds.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-card">
+    <div class="config-title"><i class="ti ti-device-mobile"></i> SoFi execution</div>
+    <div class="data-desc" style="font-family:var(--mono);font-size:12px;color:var(--text2);line-height:1.8">
+      This bot surfaces signals and generates full trade briefs.<br>
+      <strong style="color:var(--text)">You trade manually in SoFi Investing.</strong><br><br>
+      When a signal fires:<br>
+      1. Open SoFi Investing app<br>
+      2. Search the ticker symbol<br>
+      3. Place stock or options order at the shown price<br>
+      4. Set price alert at target and monitor stop<br>
+      5. Log the outcome here in Journal
+    </div>
+  </div>
+
+  <div class="sec-hd">Activity log</div>
+  <div class="log-box" id="activity-log">
+    <div class="log-line"><span class="log-t">--:--</span><span class="log-info">ORB Scout initialized. Ready to scan.</span></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ──────────────────────────────────────
+// State
+// ──────────────────────────────────────
+const S = {
+  scanned: 0, signals: 0, approved: 0, skipped: 0,
+  journal: JSON.parse(localStorage.getItem('orb-journal') || '[]'),
+  cfg: { tp: 20, sl: 25, vr: 2, sh: 3 },
+  scanning: false,
+  currentOptSig: null,
+};
+
+// ──────────────────────────────────────
+// Watchlist
+// ──────────────────────────────────────
+const WATCHLIST = [
+  { s:'GLD', n:'SPDR Gold', t:'fav' },
+  { s:'GC=F', n:'Gold Futures', t:'fav' },
+  { s:'SPY', n:'S&P 500 ETF', t:'fav' },
+  { s:'ES=F', n:'S&P Futures', t:'fav' },
+  { s:'QQQ', n:'Nasdaq ETF', t:'fav' },
+  { s:'NVDA', n:'Nvidia', t:'dyn' },
+  { s:'TSLA', n:'Tesla', t:'dyn' },
+  { s:'AAPL', n:'Apple', t:'dyn' },
+  { s:'META', n:'Meta', t:'dyn' },
+  { s:'AMD', n:'AMD', t:'dyn' },
+  { s:'AMZN', n:'Amazon', t:'dyn' },
+  { s:'MSFT', n:'Microsoft', t:'dyn' },
+];
+
+// ──────────────────────────────────────
+// Simulated signal data
+// ──────────────────────────────────────
+const SIM_SIGNALS = [
+  { s:'NVDA', n:'Nvidia Corp', px:891.40, hi:895.20, lo:882.10, dir:'up', brk:895.85, vol:2.3, gap:'+1.8%', atr:14.2, float:'2.4B', sector:'Technology', trend:'Uptrend', rs:87, iv:48, optVol:'High', mktCap:'2.19T' },
+  { s:'GLD', n:'SPDR Gold Shares', px:229.15, hi:229.80, lo:227.60, dir:'up', brk:230.10, vol:1.8, gap:'+0.6%', atr:2.1, float:'32B', sector:'Commodity', trend:'Uptrend', rs:72, iv:18, optVol:'Moderate', mktCap:'68B' },
+  { s:'TSLA', n:'Tesla Inc', px:178.30, hi:181.20, lo:175.80, dir:'down', brk:175.40, vol:3.1, gap:'-2.2%', atr:9.8, float:'3.2B', sector:'Auto/Tech', trend:'Downtrend', rs:31, iv:74, optVol:'Very High', mktCap:'568B' },
+  { s:'AMZN', n:'Amazon.com', px:184.60, hi:186.20, lo:183.10, dir:'up', brk:186.45, vol:2.0, gap:'+0.9%', atr:5.3, float:'10.4B', sector:'Technology', trend:'Uptrend', rs:79, iv:32, optVol:'High', mktCap:'1.93T' },
+];
+
+const SIM_SWINGS = [
+  { s:'NVDA', n:'Nvidia Corp', dir:'long', entry:891, tp1:920, tp2:950, sl:855, conf:88, pattern:'Bull flag breakout', thesis:'Breaking all-time highs post-earnings. ORB + weekly uptrend + strong sector flow into AI infrastructure.' },
+  { s:'GLD', n:'SPDR Gold Shares', dir:'long', entry:229.10, tp1:238, tp2:245, sl:222, conf:74, pattern:'Resistance breakout', thesis:'Gold at 3-month high. Fed rate cut narrative + safe-haven demand building. Weekly chart clear.' },
+  { s:'TSLA', n:'Tesla Inc', dir:'short', entry:178, tp1:162, tp2:150, sl:192, conf:67, pattern:'Breakdown continuation', thesis:'Failed ORB recovery. Delivery miss + downgrade cycle in motion. Price below 20-day and 50-day MA.' },
+];
+
+// ──────────────────────────────────────
+// Clock
+// ──────────────────────────────────────
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const et = new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false }).format(now);
+    document.getElementById('clock').textContent = et + ' ET';
+    const [h, m] = et.split(':').map(Number);
+    const mins = h * 60 + m;
+    const isOpen = mins >= 570 && mins < 960;
+    const isPrePost = (mins >= 240 && mins < 570) || (mins >= 960 && mins < 1200);
+    const dot = document.getElementById('status-dot');
+    const txt = document.getElementById('status-text');
+    dot.className = 'pulse ' + (isOpen ? 'pulse-green' : isPrePost ? 'pulse-amber' : 'pulse-off');
+    txt.textContent = isOpen ? 'Market open' : isPrePost ? 'Pre/post market' : 'Market closed';
+  }
+  tick();
+  setInterval(tick, 1000);
+  document.getElementById('clock').style.display = 'block';
+}
+
+// ──────────────────────────────────────
+// Tab switching
+// ──────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ──────────────────────────────────────
+// Watchlist
+// ──────────────────────────────────────
+function renderWatchlist() {
+  document.getElementById('watchlist-chips').innerHTML = WATCHLIST.map(w =>
+    `<span class="chip ${w.t === 'fav' ? 'fav' : ''}">${w.t === 'fav' ? '★ ' : ''}${w.s}</span>`
+  ).join('');
+}
+
+// ──────────────────────────────────────
+// Metrics
+// ──────────────────────────────────────
+function updateMetrics() {
+  document.getElementById('m-scanned').textContent = S.scanned;
+  document.getElementById('m-signals').textContent = S.signals;
+  document.getElementById('m-approved').textContent = S.approved;
+  document.getElementById('m-skipped').textContent = S.skipped;
+  const wins = S.journal.filter(j => j.pnl > 0).length;
+  const total = S.journal.length;
+  document.getElementById('m-wr').textContent = total ? Math.round(wins / total * 100) + '%' : '—';
+  const badge = document.getElementById('badge-signals');
+  if (S.signals > 0) { badge.style.display = 'inline'; badge.textContent = S.signals; }
+  else { badge.style.display = 'none'; }
+}
+
+// ──────────────────────────────────────
+// Signal score
+// ──────────────────────────────────────
+function sigScore(sig) {
+  let s = 0;
+  if (sig.vol >= 2.5) s += 25; else if (sig.vol >= 1.5) s += 15;
+  if (Math.abs(parseFloat(sig.gap)) >= 1) s += 20; else s += 8;
+  if (sig.rs >= 75) s += 25; else if (sig.rs >= 50) s += 15;
+  if (sig.optVol === 'Very High') s += 20; else if (sig.optVol === 'High') s += 15; else s += 5;
+  if ((sig.dir === 'up' && sig.trend === 'Uptrend') || (sig.dir === 'down' && sig.trend === 'Downtrend')) s += 10;
+  return Math.min(s, 100);
+}
+function fillClass(v) { return v >= 70 ? 'fill-green' : v >= 45 ? 'fill-amber' : 'fill-red'; }
+function textClass(v) { return v >= 70 ? 'c-green' : v >= 45 ? 'c-amber' : 'c-red'; }
+
+// ──────────────────────────────────────
+// Mini candle SVG
+// ──────────────────────────────────────
+function miniCandleSVG(dir) {
+  const N = 18;
+  let candles = [], base = 100;
+  for (let i = 0; i < N; i++) {
+    const bull = i < 8 ? Math.random() > 0.45 : (dir === 'up' ? Math.random() > 0.38 : Math.random() < 0.38);
+    const body = 1.5 + Math.random() * 5;
+    const wickH = 0.5 + Math.random() * 2.5;
+    const wickL = 0.5 + Math.random() * 2.5;
+    candles.push({ o: base, c: bull ? base + body : base - body, h: base + body + wickH, l: base - wickL, bull });
+    base = bull ? base + body * 0.35 : base - body * 0.35;
+  }
+  const allVals = candles.flatMap(c => [c.h, c.l]);
+  const mn = Math.min(...allVals) - 1, mx = Math.max(...allVals) + 1;
+  const range = mx - mn; const H = 56; const W = N * 16;
+  const toY = v => ((1 - (v - mn) / range) * H).toFixed(1);
+  let inner = '';
+  const orbHighY = toY(candles[0].h + (mx - candles[0].h) * 0.3);
+  const orbLowY = toY(candles[0].l + (candles[0].l - mn) * 0.2);
+  candles.forEach((c, i) => {
+    const x = i * 16 + 8;
+    const top = Math.min(toY(c.o), toY(c.c));
+    const bot = Math.max(toY(c.o), toY(c.c));
+    const bh = Math.max(2, bot - top);
+    const col = c.bull ? '#22c55e' : '#ef4444';
+    inner += `<line x1="${x}" y1="${toY(c.h)}" x2="${x}" y2="${toY(c.l)}" stroke="${col}" stroke-width="1.2"/>`;
+    inner += `<rect x="${x - 4}" y="${top}" width="8" height="${bh}" fill="${col}" rx="1"/>`;
+  });
+  inner += `<line x1="0" y1="${orbHighY}" x2="${W}" y2="${orbHighY}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="3,2"/>`;
+  inner += `<line x1="0" y1="${orbLowY}" x2="${W}" y2="${orbLowY}" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="3,2"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="candle-wrap" aria-hidden="true">${inner}</svg>`;
+}
+
+// ──────────────────────────────────────
+// Render signal card
+// ──────────────────────────────────────
+function renderSignal(sig, idx) {
+  const up = sig.dir === 'up';
+  const tgt = (sig.brk + (up ? S.cfg.tp : -S.cfg.tp)).toFixed(2);
+  const sl = (sig.brk * (up ? (1 - S.cfg.sl / 100) : (1 + S.cfg.sl / 100))).toFixed(2);
+  const orbRange = (sig.hi - sig.lo).toFixed(2);
+  const score = sigScore(sig);
+  return `<div class="signal-card ${up ? 'long' : 'short'}" id="sig-${idx}">
+    <div class="sig-header">
+      <div class="sig-top">
+        <div>
+          <div class="sig-sym">${sig.s}</div>
+          <div class="sig-name">${sig.n} · ${sig.sector} · Cap ${sig.mktCap}</div>
+        </div>
+        <div class="sig-price">
+          <div class="sig-pr-val ${up ? 'c-green' : 'c-red'}">$${sig.brk.toFixed(2)}</div>
+          <div class="sig-pr-lbl">break price · gap ${sig.gap}</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge ${up ? 'badge-green' : 'badge-red'}">${up ? '▲ LONG' : '▼ SHORT'}</span>
+        <span class="badge badge-blue">ORB confirmed</span>
+        <span class="badge badge-gray">${sig.sector}</span>
+        <span class="badge badge-gray">${sig.trend}</span>
+        ${sig.iv > 60 ? '<span class="badge badge-amber">IV elevated</span>' : ''}
+      </div>
+    </div>
+    <div class="sig-body">
+      ${miniCandleSVG(sig.dir)}
+      <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:10px">
+        <span style="color:#f59e0b">— — ORB range</span> &nbsp; <span style="color:#22c55e">● Bull</span> &nbsp; <span style="color:#ef4444">● Bear</span>
+      </div>
+
+      <div class="score-row">
+        <div class="score-lbl">Signal score</div>
+        <div class="score-bar"><div class="score-fill ${fillClass(score)}" style="width:${score}%"></div></div>
+        <div class="score-num ${textClass(score)}">${score}</div>
+      </div>
+      <div class="score-row">
+        <div class="score-lbl">Volume ratio</div>
+        <div class="score-bar"><div class="score-fill ${fillClass(sig.vol / 4 * 100)}" style="width:${Math.min(sig.vol / 4 * 100, 100)}%"></div></div>
+        <div class="score-num">${sig.vol}x</div>
+      </div>
+      <div class="score-row">
+        <div class="score-lbl">Rel strength</div>
+        <div class="score-bar"><div class="score-fill ${fillClass(sig.rs)}" style="width:${sig.rs}%"></div></div>
+        <div class="score-num ${textClass(sig.rs)}">${sig.rs}</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="sig-grid">
+        <div><div class="sig-field-label">ORB high</div><div class="sig-field-value">$${sig.hi.toFixed(2)}</div></div>
+        <div><div class="sig-field-label">ORB low</div><div class="sig-field-value">$${sig.lo.toFixed(2)}</div></div>
+        <div><div class="sig-field-label">ORB range</div><div class="sig-field-value">$${orbRange}</div></div>
+        <div><div class="sig-field-label">ATR (14)</div><div class="sig-field-value">$${sig.atr.toFixed(1)}</div></div>
+        <div><div class="sig-field-label">Target</div><div class="sig-field-value c-green">$${tgt}</div><div class="sig-field-sub">+${S.cfg.tp} pts</div></div>
+        <div><div class="sig-field-label">Stop loss</div><div class="sig-field-value c-red">$${sl}</div><div class="sig-field-sub">-${S.cfg.sl}%</div></div>
+        <div><div class="sig-field-label">IV</div><div class="sig-field-value ${sig.iv > 60 ? 'c-amber' : 'c-text'}">${sig.iv}%</div></div>
+        <div><div class="sig-field-label">Opt. volume</div><div class="sig-field-value">${sig.optVol}</div></div>
+      </div>
+
+      <div class="checks">
+        <span class="chk ok"><i class="ti ti-check"></i> 15m ORB set</span>
+        <span class="chk ok"><i class="ti ti-check"></i> 1m confirmed</span>
+        <span class="chk ok"><i class="ti ti-check"></i> Vol ${sig.vol}x avg</span>
+        <span class="chk ok"><i class="ti ti-check"></i> Trend aligned</span>
+        <span class="chk ${sig.iv > 60 ? 'warn' : 'ok'}">
+          <i class="ti ti-${sig.iv > 60 ? 'alert-triangle' : 'check'}"></i> IV ${sig.iv > 60 ? 'elevated' : 'normal'}
+        </span>
+      </div>
+
+      <div class="ins-box">
+        <strong>How to trade in SoFi:</strong> Open SoFi Investing → search <strong>${sig.s}</strong> →
+        ${up ? 'Buy shares or a call option' : 'Buy a put option or short shares'} at/near <strong>$${sig.brk.toFixed(2)}</strong> →
+        mental stop at <strong>$${sl}</strong> → target <strong>$${tgt}</strong>.
+        Set a price alert in SoFi at $${tgt} so you're notified.
+      </div>
+    </div>
+    <div class="act-row">
+      <button class="btn btn-green" onclick="approveSig(${idx})"><i class="ti ti-check"></i> Approve &amp; log</button>
+      <button class="btn btn-red btn-sm" onclick="skipSig(${idx})"><i class="ti ti-x"></i> Skip</button>
+      <button class="btn btn-ghost btn-sm" onclick="showOptBrief(${idx})"><i class="ti ti-trending-up"></i> Options brief</button>
+    </div>
+  </div>`;
+}
+
+// ──────────────────────────────────────
+// Approve / skip signals
+// ──────────────────────────────────────
+function approveSig(idx) {
+  S.approved++;
+  const el = document.getElementById('sig-' + idx);
+  if (el) {
+    el.style.opacity = '0.5';
+    el.style.pointerEvents = 'none';
+    const note = document.createElement('div');
+    note.style.cssText = 'padding:10px 14px;background:var(--green-dim);border-top:1px solid var(--green-border);font-family:var(--mono);font-size:12px;color:var(--green)';
+    note.innerHTML = '✓ Approved & logged — open SoFi and place your order for ' + SIM_SIGNALS[idx].s;
+    el.appendChild(note);
+  }
+  const sig = SIM_SIGNALS[idx];
+  S.currentOptSig = sig;
+  renderOptBrief(sig);
+  updateMetrics();
+  addLog('✓ Approved: ' + sig.s + ' ' + (sig.dir === 'up' ? 'LONG' : 'SHORT') + ' @ $' + sig.brk.toFixed(2), 'ok');
+  toast('Approved ' + sig.s + ' — open SoFi to trade', 'green');
+}
+
+function skipSig(idx) {
+  S.skipped++;
+  const el = document.getElementById('sig-' + idx);
+  if (el) {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    el.style.transition = 'all 0.2s ease';
+    setTimeout(() => el.remove(), 200);
+  }
+  addLog('✗ Skipped: ' + SIM_SIGNALS[idx].s, 'warn');
+  updateMetrics();
+}
+
+function showOptBrief(idx) {
+  const sig = SIM_SIGNALS[idx];
+  S.currentOptSig = sig;
+  renderOptBrief(sig);
+  document.querySelector('[data-tab="options"]').click();
+}
+
+// ──────────────────────────────────────
+// Options brief
+// ──────────────────────────────────────
+function renderOptBrief(sig) {
+  const up = sig.dir === 'up';
+  const strike1 = Math.round(sig.brk / 5) * 5 + (up ? 5 : -5);
+  const strike2 = Math.round(sig.brk / 5) * 5 + (up ? 10 : -10);
+  const prem1 = (sig.brk * 0.016).toFixed(2);
+  const prem2 = (sig.brk * 0.009).toFixed(2);
+  const tgt = (sig.brk + (up ? S.cfg.tp : -S.cfg.tp)).toFixed(2);
+  const sl = (sig.brk * (up ? (1 - S.cfg.sl / 100) : (1 + S.cfg.sl / 100))).toFixed(2);
+  const ivNote = sig.iv > 55
+    ? 'IV is elevated at ' + sig.iv + '% — consider a debit spread to reduce premium cost and limit theta decay risk.'
+    : 'IV is normal at ' + sig.iv + '% — straight calls/puts are a reasonable play. No need to spread.';
+
+  document.getElementById('options-container').innerHTML = `
+    <div class="signal-card ${up ? 'long' : 'short'}">
+      <div class="sig-header">
+        <div class="sig-top">
+          <div>
+            <div class="sig-sym">${sig.s}</div>
+            <div class="sig-name">${up ? 'Call' : 'Put'} options brief</div>
+          </div>
+          <div class="badges" style="flex-direction:column;align-items:flex-end">
+            <span class="badge ${up ? 'badge-green' : 'badge-red'}">${up ? 'Calls' : 'Puts'}</span>
+            <span class="badge badge-amber" style="margin-top:4px">IV ${sig.iv}% · ${sig.optVol} vol</span>
+          </div>
+        </div>
+      </div>
+      <div class="sig-body">
+        <div class="ins-box" style="margin-bottom:12px">${ivNote}</div>
+        <div class="opt-grid">
+          <div class="opt-card">
+            <div class="opt-hd">Aggressive — 7 DTE</div>
+            <div class="opt-row"><span class="opt-key">Type</span><span class="opt-val">${up ? 'Call' : 'Put'} · OTM</span></div>
+            <div class="opt-row"><span class="opt-key">Strike</span><span class="opt-val">$${strike1}</span></div>
+            <div class="opt-row"><span class="opt-key">Expiry</span><span class="opt-val">~7 days out</span></div>
+            <div class="opt-row"><span class="opt-key">Est. premium</span><span class="opt-val">~$${prem1}</span></div>
+            <div class="opt-row"><span class="opt-key">Max risk</span><span class="opt-val c-red">100% premium</span></div>
+            <div class="opt-row"><span class="opt-key">Best for</span><span class="opt-val">Quick scalp</span></div>
+          </div>
+          <div class="opt-card">
+            <div class="opt-hd">Swing — 14 DTE</div>
+            <div class="opt-row"><span class="opt-key">Type</span><span class="opt-val">${up ? 'Call' : 'Put'} · slight OTM</span></div>
+            <div class="opt-row"><span class="opt-key">Strike</span><span class="opt-val">$${strike2}</span></div>
+            <div class="opt-row"><span class="opt-key">Expiry</span><span class="opt-val">~14 days out</span></div>
+            <div class="opt-row"><span class="opt-key">Est. premium</span><span class="opt-val">~$${prem2}</span></div>
+            <div class="opt-row"><span class="opt-key">Max risk</span><span class="opt-val c-red">100% premium</span></div>
+            <div class="opt-row"><span class="opt-key">Best for</span><span class="opt-val">Multi-day hold</span></div>
+          </div>
+        </div>
+        <div class="ins-box">
+          <strong>In SoFi:</strong> Go to <strong>${sig.s}</strong> → Options chain → filter ${up ? 'Calls' : 'Puts'} →
+          select strike $${strike1} (aggressive) or $${strike2} (swing) → check bid/ask spread (tight = liquid) →
+          Buy to open. Set a price alert at $${tgt} as your TP trigger, and close if stock hits $${sl}.
+        </div>
+        <div class="divider"></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);line-height:1.7">
+          ⚠ Options are leveraged instruments. Premium can go to zero. Never risk more than you can afford to lose on a single contract.
+          Premiums above are estimates only — always check the live bid/ask in SoFi before trading.
+        </div>
+      </div>
+    </div>`;
+}
+
+// ──────────────────────────────────────
+// Swing setups
+// ──────────────────────────────────────
+function renderSwings() {
+  const container = document.getElementById('swing-container');
+  if (!SIM_SWINGS.length) { container.innerHTML = '<div class="empty-state"><i class="ti ti-calendar-stats"></i>No swing candidates found.</div>'; return; }
+  container.innerHTML = SIM_SWINGS.map(sw => {
+    const up = sw.dir === 'long';
+    return `<div class="swing-card">
+      <div class="swing-header">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:18px;font-weight:700">${sw.s}</span>
+          <span class="badge ${up ? 'badge-green' : 'badge-red'}">${up ? 'Long' : 'Short'} swing</span>
+          <span class="badge badge-gray">${sw.pattern}</span>
+        </div>
+        <span class="badge badge-blue">${sw.conf}% conf.</span>
+      </div>
+      <div class="swing-body">
+        <div class="thesis">${sw.thesis}</div>
+        <div class="swing-grid">
+          <div><div class="sig-field-label">Entry</div><div class="sig-field-value">$${sw.entry}</div></div>
+          <div><div class="sig-field-label">Target 1</div><div class="sig-field-value c-green">$${sw.tp1}</div></div>
+          <div><div class="sig-field-label">Target 2</div><div class="sig-field-value c-green">$${sw.tp2}</div></div>
+          <div><div class="sig-field-label">Stop</div><div class="sig-field-value c-red">$${sw.sl}</div></div>
+        </div>
+        <div class="conf-bar-wrap">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Confidence ${sw.conf}/100</div>
+          <div class="conf-bar"><div class="conf-fill" style="width:${sw.conf}%"></div></div>
+        </div>
+        <div class="ins-box" style="margin-top:10px">
+          <strong>In SoFi:</strong> ${up ? 'Buy shares or call options' : 'Buy put options or short shares'} at/near $${sw.entry}.
+          Scale out at $${sw.tp1} (50%) then let the rest ride to $${sw.tp2}. Hard stop at $${sw.sl}.
+          Hold target: ${S.cfg.sh} days.
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('sw-count').textContent = SIM_SWINGS.length;
+  const avgConf = Math.round(SIM_SWINGS.reduce((a, s) => a + s.conf, 0) / SIM_SWINGS.length);
+  document.getElementById('sw-conf').textContent = avgConf;
+}
+
+// ──────────────────────────────────────
+// Scan simulation
+// ──────────────────────────────────────
+function runScan() {
+  if (S.scanning) return;
+  S.scanning = true;
+  const btn = document.getElementById('scan-btn');
+  const icon = document.getElementById('scan-icon');
+  const lbl = document.getElementById('scan-label');
+  btn.classList.add('scanning');
+  icon.className = 'ti ti-loader-2';
+  lbl.textContent = 'Scanning...';
+  document.getElementById('signals-container').innerHTML = `<div class="empty-state"><i class="ti ti-loader-2"></i>Fetching candles for ${WATCHLIST.length} tickers...</div>`;
+  addLog('Scan started — ' + WATCHLIST.length + ' tickers queued', 'info');
+  let i = 0;
+  const ticker = setInterval(() => {
+    if (i < WATCHLIST.length) {
+      S.scanned++;
+      addLog('Fetched 15m + 1m: ' + WATCHLIST[i].s, 'info');
+      updateMetrics();
+      i++;
+    } else {
+      clearInterval(ticker);
+      S.signals += SIM_SIGNALS.length;
+      updateMetrics();
+      document.getElementById('signals-container').innerHTML = SIM_SIGNALS.map((sig, idx) => renderSignal(sig, idx)).join('');
+      renderSwings();
+      btn.classList.remove('scanning');
+      icon.className = 'ti ti-refresh';
+      lbl.textContent = 'Scan now';
+      S.scanning = false;
+      SIM_SIGNALS.forEach(sig => addLog('Signal: ' + sig.s + ' ' + (sig.dir === 'up' ? 'LONG' : 'SHORT') + ' @ $' + sig.brk.toFixed(2), 'warn'));
+      addLog('Scan complete — ' + SIM_SIGNALS.length + ' ORB signals found', 'ok');
+      toast(SIM_SIGNALS.length + ' signals found — check the Signals tab', 'green');
+    }
+  }, 180);
+}
+
+// ──────────────────────────────────────
+// Config
+// ──────────────────────────────────────
+function updateCfg(key, val) {
+  S.cfg[key] = Number(val);
+  const ids = { tp: ['cfg-tp-out', 'cfg-tp-lbl'], sl: ['cfg-sl-out', 'cfg-sl-lbl'], vr: ['cfg-vr-out', 'cfg-vr-lbl'], sh: ['cfg-sh-out', 'cfg-sh-lbl'] };
+  (ids[key] || []).forEach(id => { const el = document.getElementById(id); if (el) el.textContent = val; });
+}
+
+// ──────────────────────────────────────
+// Journal
+// ──────────────────────────────────────
+function logTrade() {
+  const sym = (document.getElementById('j-sym').value || '').trim().toUpperCase();
+  const type = document.getElementById('j-type').value;
+  const entry = parseFloat(document.getElementById('j-entry').value);
+  const exit = parseFloat(document.getElementById('j-exit').value);
+  const qty = parseFloat(document.getElementById('j-qty').value) || 1;
+  const notes = (document.getElementById('j-notes').value || '').trim();
+  const msg = document.getElementById('j-msg');
+  if (!sym || isNaN(entry) || isNaN(exit)) { msg.textContent = 'Fill in ticker, entry, and exit.'; return; }
+  const isLong = type === 'stock-long' || type === 'call';
+  const isOpt = type === 'call' || type === 'put';
+  const pnl = (isLong ? exit - entry : entry - exit) * qty * (isOpt ? 100 : 1);
+  const trade = { sym, type, entry, exit, qty, pnl, notes, time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) };
+  S.journal.unshift(trade);
+  try { localStorage.setItem('orb-journal', JSON.stringify(S.journal)); } catch(e) {}
+  document.getElementById('j-sym').value = '';
+  document.getElementById('j-entry').value = '';
+  document.getElementById('j-exit').value = '';
+  document.getElementById('j-qty').value = '';
+  document.getElementById('j-notes').value = '';
+  msg.textContent = 'Logged!';
+  setTimeout(() => { msg.textContent = ''; }, 2000);
+  renderJournal();
+  updateMetrics();
+  addLog((pnl >= 0 ? '✓' : '✗') + ' Journal: ' + sym + ' ' + (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2), pnl >= 0 ? 'ok' : 'err');
+  toast(sym + ' logged — ' + (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2), pnl >= 0 ? 'green' : '');
+}
+
+function renderJournal() {
+  const wins = S.journal.filter(j => j.pnl > 0);
+  const losses = S.journal.filter(j => j.pnl <= 0);
+  document.getElementById('j-total').textContent = S.journal.length;
+  document.getElementById('j-wins').textContent = wins.length;
+  document.getElementById('j-losses').textContent = losses.length;
+  const avgGain = wins.length ? wins.reduce((a, j) => a + j.pnl, 0) / wins.length : 0;
+  const avgLoss = losses.length ? losses.reduce((a, j) => a + j.pnl, 0) / losses.length : 0;
+  document.getElementById('j-avg-gain').textContent = wins.length ? '+$' + avgGain.toFixed(2) : '—';
+  document.getElementById('j-avg-loss').textContent = losses.length ? '-$' + Math.abs(avgLoss).toFixed(2) : '—';
+  const el = document.getElementById('hist-container');
+  if (!S.journal.length) {
+    el.innerHTML = '<div class="empty-state"><i class="ti ti-notebook"></i>No trades logged yet</div>';
+    return;
+  }
+  const typeLabels = { 'stock-long': 'Stock Long', 'stock-short': 'Stock Short', 'call': 'Call Option', 'put': 'Put Option' };
+  el.innerHTML = S.journal.map(j => `
+    <div class="hist-row">
+      <div>
+        <div class="hist-sym ${j.pnl >= 0 ? 'c-green' : 'c-red'}">${j.sym}</div>
+        <div class="hist-type">${typeLabels[j.type] || j.type}</div>
+      </div>
+      <div class="hist-meta">${j.time}${j.notes ? ' · ' + j.notes : ''}</div>
+      <div>
+        <div class="hist-pnl ${j.pnl >= 0 ? 'c-green' : 'c-red'}">${j.pnl >= 0 ? '+' : '-'}$${Math.abs(j.pnl).toFixed(2)}</div>
+        <div class="hist-prices">$${j.entry} → $${j.exit} (${j.qty})</div>
+      </div>
+    </div>`).join('');
+}
+
+// ──────────────────────────────────────
+// Activity log
+// ──────────────────────────────────────
+function addLog(msg, type) {
+  const el = document.getElementById('activity-log');
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const div = document.createElement('div');
+  div.className = 'log-line';
+  div.innerHTML = `<span class="log-t">${now}</span><span class="log-${type || 'info'}">${msg}</span>`;
+  el.prepend(div);
+  while (el.children.length > 60) el.removeChild(el.lastChild);
+}
+
+// ──────────────────────────────────────
+// Toast
+// ──────────────────────────────────────
+let toastTimer;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' toast-' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+// ──────────────────────────────────────
+// Init
+// ──────────────────────────────────────
+renderWatchlist();
+renderJournal();
+updateMetrics();
+startClock();
+addLog('ORB Scout ready — data source: Yahoo Finance (yfinance)', 'ok');
+addLog('Watchlist: ' + WATCHLIST.map(w => w.s).join(', '), 'info');
+addLog('Tap "Scan now" to begin. Market hours: 9:30–4:00 PM ET.', 'info');
+</script>
+</body>
+</html>

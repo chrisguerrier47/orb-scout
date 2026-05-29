@@ -527,22 +527,23 @@ async function poll(){
 }
 
 function updateSigBar(d){
-  const t=d.scanned_at?new Date(d.scanned_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})+' ET':'—';
-  ['sig-bar','bud-bar'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.className='live-bar lb-live';
-    el.querySelector('.lb-left').innerHTML='<i class="ti ti-circle-check"></i><span>Live — Railway backend</span>';
-  });
-  document.getElementById('sig-bar-time').textContent='Scanned: '+t;
-  document.getElementById('bud-bar-time').textContent='Scanned: '+t;
-  document.getElementById('news-upd').textContent='Refreshed: '+t;
+  const t=d.scanned_at?new Date(d.scanned_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})+' ET':new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})+' ET';
+  const sigBar=document.getElementById('sig-bar');
+  sigBar.className='live-bar lb-live';
+  sigBar.innerHTML='<div class="lb-left"><i class="ti ti-circle-check"></i><span>Live — Railway backend</span></div><div class="lb-right">Scanned: '+t+'</div>';
+  const budBar=document.getElementById('bud-bar');
+  budBar.className='live-bar lb-live';
+  budBar.innerHTML='<div class="lb-left"><i class="ti ti-circle-check"></i><span>Budget signals ≤ $<span id="bp-lbl">'+S.cfg.budget+'</span></span></div><div class="lb-right">Scanned: '+t+'</div>';
+  const newsUpd=document.getElementById('news-upd');
+  if(newsUpd) newsUpd.textContent='Refreshed: '+t;
 }
 function updateSigBarErr(){
-  ['sig-bar','bud-bar'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.className='live-bar lb-err';
-    el.querySelector('.lb-left').innerHTML='<i class="ti ti-wifi-off"></i><span>Cannot reach Railway — check URL in Config</span>';
-  });
+  const sigBar=document.getElementById('sig-bar');
+  sigBar.className='live-bar lb-err';
+  sigBar.innerHTML='<div class="lb-left"><i class="ti ti-wifi-off"></i><span>Cannot reach Railway — check URL in Config</span></div><div class="lb-right"></div>';
+  const budBar=document.getElementById('bud-bar');
+  budBar.className='live-bar lb-err';
+  budBar.innerHTML='<div class="lb-left"><i class="ti ti-wifi-off"></i><span>Cannot reach Railway — check URL in Config</span></div><div class="lb-right"></div>';
 }
 
 // ── Score helpers ──

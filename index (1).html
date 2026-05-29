@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ORB Scout">
+<meta name="theme-color" content="#0a0c0f">
+<title>ORB Scout v3</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0a0c0f;--bg1:#111418;--bg2:#181c22;--bg3:#1e242c;--bg4:#252d38;
+  --border:rgba(255,255,255,0.07);--border-hi:rgba(255,255,255,0.14);
+  --text:#e8eaed;--text2:#8a9ab0;--text3:#4e5d70;
+  --green:#22c55e;--green-dim:rgba(34,197,94,0.12);--green-border:rgba(34,197,94,0.3);
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.12);--red-border:rgba(239,68,68,0.3);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);--amber-border:rgba(245,158,11,0.3);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.12);--blue-border:rgba(59,130,246,0.3);
+  --purple:#a855f7;--purple-dim:rgba(168,85,247,0.12);--purple-border:rgba(168,85,247,0.3);
+  --mono:'IBM Plex Mono',monospace;--sans:'Syne',sans-serif;
+  --r:8px;--rl:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--bg0);color:var(--text);min-height:100dvh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+.app{display:flex;flex-direction:column;min-height:100dvh}
+
+/* ── HEADER ── */
+.header{position:sticky;top:0;z-index:100;background:rgba(10,12,15,0.96);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;gap:10px;backdrop-filter:blur(16px)}
+.brand{display:flex;align-items:center;gap:9px}
+.brand-mark{width:32px;height:32px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:16px}
+.brand-name{font-size:14px;font-weight:700;letter-spacing:-.02em}
+.brand-name span{color:var(--green)}
+.ver{font-size:9px;font-family:var(--mono);color:var(--text3);padding:1px 5px;border:1px solid var(--border-hi);border-radius:8px;margin-left:5px}
+.pill{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:3px 9px}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-g{background:var(--green);box-shadow:0 0 5px var(--green);animation:blink 2s infinite}
+.dot-a{background:var(--amber);animation:blink 3s infinite}
+.dot-o{background:var(--text3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── API CONFIG BANNER ── */
+.api-cfg{background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-family:var(--mono);font-size:12px;color:var(--amber);line-height:1.7;display:flex;gap:10px;align-items:flex-start}
+.api-cfg i{font-size:16px;flex-shrink:0;margin-top:1px}
+.api-cfg input{background:var(--bg3);border:1px solid var(--amber-border);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:12px;padding:5px 9px;outline:none;width:100%;margin-top:4px}
+.api-cfg input:focus{border-color:var(--amber)}
+.api-connected{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+
+/* ── NAV ── */
+.nav{display:flex;overflow-x:auto;gap:0;border-bottom:1px solid var(--border);background:var(--bg0);scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-tab{display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:11px;font-weight:500;color:var(--text3);border:none;background:none;cursor:pointer;white-space:nowrap;flex-shrink:0;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:var(--sans)}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.bc{font-size:10px;font-family:var(--mono);background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border);border-radius:10px;padding:1px 5px;min-width:18px;text-align:center}
+.bl{font-size:10px;font-family:var(--mono);background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);border-radius:10px;padding:1px 5px}
+
+/* ── CONTENT ── */
+.content{flex:1;padding:16px;max-width:840px;margin:0 auto;width:100%}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ── LIVE BAR ── */
+.live-bar{display:flex;align-items:center;justify-content:space-between;border-radius:var(--r);padding:8px 13px;margin-bottom:13px;flex-wrap:wrap;gap:8px}
+.lb-live{background:var(--green-dim);border:1px solid var(--green-border)}
+.lb-wait{background:var(--amber-dim);border:1px solid var(--amber-border)}
+.lb-err{background:var(--red-dim);border:1px solid var(--red-border)}
+.lb-left{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px}
+.lb-live .lb-left{color:var(--green)}
+.lb-wait .lb-left{color:var(--amber)}
+.lb-err .lb-left{color:var(--red)}
+.lb-right{font-family:var(--mono);font-size:10px;color:var(--text3)}
+
+/* ── METRICS ── */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:7px;margin-bottom:13px}
+.met{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 11px}
+.met-l{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.met-v{font-size:19px;font-weight:700;line-height:1}
+.met-s{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px}
+.cg{color:var(--green)}.cr{color:var(--red)}.ca{color:var(--amber)}.cb{color:var(--blue)}.cp{color:var(--purple)}.ct{color:var(--text)}
+
+/* ── SEC HD ── */
+.sec{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;margin-top:15px;display:flex;align-items:center;justify-content:space-between}
+.sec:first-child{margin-top:0}
+
+/* ── SIGNAL CARD ── */
+.sc{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:11px;overflow:hidden;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.sc.long{border-left:3px solid var(--green)}.sc.short{border-left:3px solid var(--red)}.sc.budget{border-left:3px solid var(--purple)}
+.sc-hd{padding:12px 14px 9px;border-bottom:1px solid var(--border)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.sc-sym{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.sc-nm{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+.sc-px{text-align:right}
+.sc-pv{font-size:18px;font-weight:700;font-family:var(--mono)}
+.sc-pl{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.bgs{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.bg{font-size:10px;font-family:var(--mono);font-weight:500;padding:2px 7px;border-radius:20px;border:1px solid;display:inline-flex;align-items:center;gap:3px}
+.bg-g{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.bg-r{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
+.bg-a{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
+.bg-b{background:var(--blue-dim);border-color:var(--blue-border);color:var(--blue)}
+.bg-p{background:var(--purple-dim);border-color:var(--purple-border);color:var(--purple)}
+.bg-x{background:var(--bg3);border-color:var(--border-hi);color:var(--text2)}
+.sc-bd{padding:11px 14px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+@media(max-width:420px){.sg{grid-template-columns:repeat(2,1fr)}}
+.sf-l{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em}
+.sf-v{font-size:13px;font-weight:600;font-family:var(--mono)}
+.sf-s{font-size:10px;color:var(--text3);font-family:var(--mono)}
+
+/* ── SCORE BARS ── */
+.sr{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.sl{font-family:var(--mono);font-size:10px;color:var(--text3);width:82px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em}
+.sb{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.sf{height:100%;border-radius:2px;transition:width .6s ease}
+.fg{background:var(--green)}.fa{background:var(--amber)}.fr{background:var(--red)}.fp{background:var(--purple)}
+.sn{font-family:var(--mono);font-size:11px;font-weight:500;width:24px;text-align:right}
+
+/* ── CHECKS ── */
+.cks{display:flex;flex-wrap:wrap;gap:5px 11px;margin-bottom:9px}
+.ck{display:flex;align-items:center;gap:3px;font-family:var(--mono);font-size:11px}
+.ck.ok{color:var(--green)}.ck.wn{color:var(--amber)}.ck.ng{color:var(--red)}
+
+/* ── INS BOX ── */
+.ins{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:9px}
+.ins strong{color:var(--text)}
+.boost{font-family:var(--mono);font-size:11px;color:var(--green);margin-bottom:7px}
+.warn{font-family:var(--mono);font-size:11px;color:var(--amber);margin-bottom:7px}
+.divider{height:1px;background:var(--border);margin:10px 0}
+
+/* ── NEWS ON SIGNAL ── */
+.sig-news-wrap{margin-top:9px}
+.sig-news-ttl{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sig-news-row{display:flex;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)}
+.sig-news-row:last-child{border-bottom:none}
+.sig-news-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.sig-news-hl{font-size:11px;color:var(--text2);line-height:1.4;flex:1}
+
+/* ── ACT ROW ── */
+.act{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2)}
+.btn{padding:7px 12px;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;border:1px solid;font-family:var(--sans);display:inline-flex;align-items:center;gap:5px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn i{font-size:13px}
+.btn-g{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.btn-r{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
+.btn-p{background:var(--purple-dim);border-color:var(--purple-border);color:var(--purple)}
+.btn-x{background:var(--bg3);border-color:var(--border-hi);color:var(--text2)}
+.btn-sm{padding:5px 9px;font-size:11px}
+
+/* ── OPTIONS ── */
+.og{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+@media(max-width:380px){.og{grid-template-columns:1fr}}
+.oc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px}
+.oh{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.or{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)}
+.or:last-child{border-bottom:none}
+.ok{color:var(--text3)}.ov{color:var(--text);font-weight:500}
+
+/* ── PRE-MARKET ── */
+.pm-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);padding:13px 15px;margin-bottom:11px}
+.gap-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px}
+.gap-row:last-child{border-bottom:none}
+.earn-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:12px}
+.earn-row:last-child{border-bottom:none}
+
+/* ── NEWS ── */
+.nf{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.nfb{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border-hi);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s}
+.nfb.active{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.ni{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);padding:12px 14px;margin-bottom:8px;text-decoration:none;display:block;transition:border-color .15s}
+.ni:hover{border-color:var(--border-hi)}
+.ni.br{border-left:3px solid var(--amber)}.ni.bl{border-left:3px solid var(--green)}.ni.be{border-left:3px solid var(--red)}.ni.bp{border-left:3px solid var(--blue)}
+.n-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.n-src{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.n-hl{font-size:13px;font-weight:600;line-height:1.4;color:var(--text);margin-bottom:5px}
+.n-sm{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.n-tks{display:flex;gap:4px;flex-wrap:wrap}
+.n-tk{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:20px;background:var(--bg3);border:1px solid var(--border-hi);color:var(--text2)}
+.sent{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:20px;border:1px solid}
+.s-bull{background:var(--green-dim);border-color:var(--green-border);color:var(--green)}
+.s-bear{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
+.s-neut{background:var(--bg3);border-color:var(--border-hi);color:var(--text3)}
+.s-break{background:var(--amber-dim);border-color:var(--amber-border);color:var(--amber)}
+.rss-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:12px}
+.rss-row:last-child{border-bottom:none}
+.rss-url{font-family:var(--mono);font-size:11px;color:var(--blue);text-decoration:none}
+
+/* ── JOURNAL ── */
+.jf{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);padding:13px;margin-bottom:13px}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+@media(max-width:400px){.fg2{grid-template-columns:1fr}.fg3{grid-template-columns:1fr 1fr}}
+.fl{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+input,select{width:100%;background:var(--bg3);border:1px solid var(--border-hi);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:13px;padding:7px 9px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--green)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a9ab0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.hr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.hr:last-child{border-bottom:none}
+
+/* ── CONFIG ── */
+.cc{background:var(--bg1);border:1px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:10px}
+.ct-title{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.ct-title i{color:var(--text3);font-size:15px}
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:400px){.cg2{grid-template-columns:1fr}}
+.cl{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.rr{display:flex;align-items:center;gap:7px}
+input[type=range]{flex:1;height:4px;border-radius:2px;padding:0;border:none;background:var(--bg4);accent-color:var(--green);cursor:pointer}
+.ro{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--green);min-width:28px;text-align:right}
+code{background:var(--bg3);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:11px;color:var(--green)}
+
+/* ── LOG ── */
+.log{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;max-height:160px;overflow-y:auto;font-family:var(--mono);font-size:11px}
+.ll{display:flex;gap:8px;padding:2px 0;border-bottom:1px solid var(--border)}
+.ll:last-child{border-bottom:none}
+.lt{color:var(--text3);flex-shrink:0;width:44px}
+.lok{color:var(--green)}.lw{color:var(--amber)}.le{color:var(--red)}.li{color:var(--text2)}
+
+/* ── SCAN BTN ── */
+.sbtn{display:flex;align-items:center;gap:6px;background:var(--green-dim);border:1px solid var(--green-border);color:var(--green);border-radius:var(--r);padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);-webkit-tap-highlight-color:transparent}
+.sbtn.pur{background:var(--purple-dim);border-color:var(--purple-border);color:var(--purple)}
+
+.empty{text-align:center;padding:32px 14px;color:var(--text3);font-family:var(--mono);font-size:12px;line-height:1.7}
+.empty i{font-size:28px;display:block;margin-bottom:8px;opacity:.35}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--border-hi);border-radius:var(--r);padding:8px 15px;font-family:var(--mono);font-size:12px;color:var(--text);z-index:999;transition:transform .3s ease;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.tg{border-color:var(--green-border);color:var(--green)}
+.toast.ta{border-color:var(--amber-border);color:var(--amber)}
+
+@media(max-width:360px){.header{padding:0 11px}.content{padding:12px}.nav-tab{padding:9px 9px;font-size:10px}}
+@media(min-width:600px){.content{padding:20px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="header">
+  <div class="brand">
+    <div class="brand-mark"><i class="ti ti-chart-candle"></i></div>
+    <div class="brand-name">ORB<span>Scout</span><span class="ver">v3 · RAILWAY</span></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:7px">
+    <div class="pill"><div class="dot dot-a" id="sdot"></div><span id="stxt">Connecting...</span></div>
+    <span id="clk" style="font-family:var(--mono);font-size:10px;color:var(--text3);display:none"></span>
+  </div>
+</header>
+
+<nav class="nav">
+  <button class="nav-tab active" onclick="tab('premarket',this)"><i class="ti ti-sunrise"></i> Pre-market</button>
+  <button class="nav-tab" onclick="tab('signals',this)"><i class="ti ti-radar"></i> Signals <span class="bc" id="b-sig" style="display:none">0</span></button>
+  <button class="nav-tab" onclick="tab('budget',this)"><i class="ti ti-coin"></i> Budget <span class="bc" id="b-bud" style="display:none">0</span></button>
+  <button class="nav-tab" onclick="tab('news',this)"><i class="ti ti-news"></i> News <span class="bl" id="b-news" style="display:none">LIVE</span></button>
+  <button class="nav-tab" onclick="tab('options',this)"><i class="ti ti-trending-up"></i> Options</button>
+  <button class="nav-tab" onclick="tab('journal',this)"><i class="ti ti-notebook"></i> Journal</button>
+  <button class="nav-tab" onclick="tab('config',this)"><i class="ti ti-settings"></i> Config</button>
+</nav>
+
+<main class="content">
+
+<!-- ══ PREMARKET ══ -->
+<div class="tab-panel active" id="tab-premarket">
+  <div class="live-bar lb-wait" id="pm-bar"><div class="lb-left"><i class="ti ti-loader-2"></i><span>Loading pre-market brief...</span></div><div class="lb-right" id="pm-bar-time"></div></div>
+  <div id="pm-summary" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:13px;font-family:var(--mono);font-size:12px;color:var(--text2);line-height:1.7;display:none"></div>
+  <div id="pm-con"><div class="empty"><i class="ti ti-sunrise"></i>Pre-market brief loads from Railway at 4:30 AM ET<br>Check back before market open</div></div>
+</div>
+
+<!-- ══ SIGNALS ══ -->
+<div class="tab-panel" id="tab-signals">
+  <div class="live-bar lb-wait" id="sig-bar"><div class="lb-left"><i class="ti ti-loader-2"></i><span id="sig-bar-txt">Connecting to Railway...</span></div><div class="lb-right" id="sig-bar-time"></div></div>
+  <div class="metrics">
+    <div class="met"><div class="met-l">Scanned</div><div class="met-v ct" id="m-sc">—</div><div class="met-s">tickers</div></div>
+    <div class="met"><div class="met-l">Signals</div><div class="met-v ca" id="m-si">—</div><div class="met-s">live</div></div>
+    <div class="met"><div class="met-l">Approved</div><div class="met-v cg" id="m-ap">0</div><div class="met-s">session</div></div>
+    <div class="met"><div class="met-l">Win rate</div><div class="met-v ct" id="m-wr">—</div><div class="met-s">journal</div></div>
+  </div>
+  <div class="sec"><span>Live ORB signals — approve → trade in SoFi</span><button class="sbtn" onclick="poll()"><i class="ti ti-refresh"></i> Refresh</button></div>
+  <div id="sig-con"><div class="empty"><i class="ti ti-radar"></i>Connecting to Railway backend...</div></div>
+</div>
+
+<!-- ══ BUDGET ══ -->
+<div class="tab-panel" id="tab-budget">
+  <div class="live-bar lb-wait" id="bud-bar"><div class="lb-left"><i class="ti ti-coin"></i><span>Budget signals ≤ $<span id="bp-lbl">150</span></span></div><div class="lb-right" id="bud-bar-time"></div></div>
+  <div class="sec"><span>ORB setups priced $150 or less</span><button class="sbtn pur" onclick="poll()"><i class="ti ti-refresh"></i> Refresh</button></div>
+  <div id="bud-con"><div class="empty"><i class="ti ti-coin"></i>Budget signals load from Railway backend</div></div>
+</div>
+
+<!-- ══ NEWS ══ -->
+<div class="tab-panel" id="tab-news">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;flex-wrap:wrap;gap:8px">
+    <div><div style="font-size:14px;font-weight:600;margin-bottom:2px">Live market &amp; world news</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)" id="news-upd">Powered by Alpaca · Finnhub · yfinance · NewsAPI · SEC EDGAR</div></div>
+    <button class="sbtn" onclick="poll()"><i class="ti ti-refresh"></i> Refresh</button>
+  </div>
+  <div class="nf">
+    <button class="nfb active" onclick="filterNews('all',this)">All</button>
+    <button class="nfb" onclick="filterNews('breaking',this)">Breaking</button>
+    <button class="nfb" onclick="filterNews('markets',this)">Markets</button>
+    <button class="nfb" onclick="filterNews('earnings',this)">Earnings</button>
+    <button class="nfb" onclick="filterNews('press',this)">Press releases</button>
+    <button class="nfb" onclick="filterNews('macro',this)">Macro / Fed</button>
+  </div>
+  <div id="news-con"><div class="empty"><i class="ti ti-news"></i>News loads from Railway backend</div></div>
+  <div class="sec" style="margin-top:18px">Live sources — open in browser</div>
+  <div>
+    <div class="rss-row"><div><div style="font-size:13px;font-weight:600">Reuters Markets</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Breaking financial & world news</div></div><a class="rss-url" href="https://www.reuters.com/finance/markets/" target="_blank" rel="noopener">Open →</a></div>
+    <div class="rss-row"><div><div style="font-size:13px;font-weight:600">MarketWatch</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Market data, stock news, earnings</div></div><a class="rss-url" href="https://www.marketwatch.com/" target="_blank" rel="noopener">Open →</a></div>
+    <div class="rss-row"><div><div style="font-size:13px;font-weight:600">Seeking Alpha</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Stock analysis, earnings calls</div></div><a class="rss-url" href="https://seekingalpha.com/market-news" target="_blank" rel="noopener">Open →</a></div>
+    <div class="rss-row"><div><div style="font-size:13px;font-weight:600">Finviz News</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Aggregated stock news by ticker</div></div><a class="rss-url" href="https://finviz.com/news.ashx" target="_blank" rel="noopener">Open →</a></div>
+    <div class="rss-row"><div><div style="font-size:13px;font-weight:600">PR Newswire</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Official company press releases</div></div><a class="rss-url" href="https://www.prnewswire.com/news-releases/financial-services-latest-news/" target="_blank" rel="noopener">Open →</a></div>
+    <div class="rss-row"><div><div style="font-size:13px;font-waste:600">SEC EDGAR 8-K</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">Official company filings</div></div><a class="rss-url" href="https://efts.sec.gov/LATEST/search-index?forms=8-K" target="_blank" rel="noopener">Open →</a></div>
+    <div class="rss-row"><div><div style="font-size:13px;font-weight:600">Federal Reserve</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">FOMC statements & rate decisions</div></div><a class="rss-url" href="https://www.federalreserve.gov/newsevents/" target="_blank" rel="noopener">Open →</a></div>
+  </div>
+</div>
+
+<!-- ══ OPTIONS ══ -->
+<div class="tab-panel" id="tab-options">
+  <div class="sec">Options brief — generated when you approve a signal</div>
+  <div id="opt-con"><div class="empty"><i class="ti ti-plant"></i>Approve a live signal — options brief appears here</div></div>
+</div>
+
+<!-- ══ JOURNAL ══ -->
+<div class="tab-panel" id="tab-journal">
+  <div class="metrics">
+    <div class="met"><div class="met-l">Total</div><div class="met-v ct" id="j-tot">0</div></div>
+    <div class="met"><div class="met-l">Winners</div><div class="met-v cg" id="j-win">0</div></div>
+    <div class="met"><div class="met-l">Losers</div><div class="met-v cr" id="j-los">0</div></div>
+    <div class="met"><div class="met-l">Avg gain</div><div class="met-v cg" id="j-ag">—</div></div>
+    <div class="met"><div class="met-l">Avg loss</div><div class="met-v cr" id="j-al">—</div></div>
+  </div>
+  <div class="sec">Log a trade</div>
+  <div class="jf">
+    <div class="fg2">
+      <div><div class="fl">Ticker</div><input type="text" id="j-sym" placeholder="NVDA" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>
+      <div><div class="fl">Type</div><select id="j-type"><option value="stock-long">Stock — long</option><option value="stock-short">Stock — short</option><option value="call">Call option</option><option value="put">Put option</option></select></div>
+    </div>
+    <div class="fg3">
+      <div><div class="fl">Entry $</div><input type="number" id="j-ent" placeholder="0.00" step="0.01" inputmode="decimal"></div>
+      <div><div class="fl">Exit $</div><input type="number" id="j-ext" placeholder="0.00" step="0.01" inputmode="decimal"></div>
+      <div><div class="fl">Qty</div><input type="number" id="j-qty" placeholder="1" step="1" inputmode="numeric"></div>
+    </div>
+    <div style="margin-bottom:10px"><div class="fl">Notes</div><input type="text" id="j-nt" placeholder="e.g. strong volume, took early TP"></div>
+    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+      <button class="btn btn-g" onclick="logTrade()"><i class="ti ti-plus"></i> Log trade</button>
+      <span id="j-msg" style="font-family:var(--mono);font-size:12px;color:var(--text3)"></span>
+    </div>
+  </div>
+  <div class="sec">History</div>
+  <div id="hist-con"><div class="empty"><i class="ti ti-notebook"></i>No trades logged yet</div></div>
+</div>
+
+<!-- ══ CONFIG ══ -->
+<div class="tab-panel" id="tab-config">
+
+  <!-- API URL config -->
+  <div id="api-banner" class="api-cfg">
+    <i class="ti ti-server"></i>
+    <div style="flex:1">
+      <strong>Set your Railway API URL</strong><br>
+      Paste your Railway deployment URL below. Found in Railway dashboard → your project → domain.
+      <input type="text" id="api-url-input" placeholder="https://your-app.up.railway.app" oninput="saveApiUrl(this.value)">
+      <div style="margin-top:6px;font-size:11px;color:var(--text3)">Example: https://orb-scout-production.up.railway.app</div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="ct-title"><i class="ti ti-adjustments-horizontal"></i> Strategy parameters</div>
+    <div class="cg2">
+      <div><div class="cl">ORB timeframe</div><div style="font-size:13px;font-weight:600">15 min (9:30–9:45 ET)</div></div>
+      <div><div class="cl">Confirmation</div><div style="font-size:13px;font-weight:600">1 min candle close</div></div>
+      <div><div class="cl">Take profit — <span id="tp-lbl">20</span> pts</div><div class="rr"><input type="range" min="10" max="40" value="20" step="1" oninput="cfgUpdate('tp',this.value)"><span class="ro" id="tp-out">20</span></div></div>
+      <div><div class="cl">Stop loss — <span id="sl-lbl">25</span>%</div><div class="rr"><input type="range" min="10" max="40" value="25" step="1" oninput="cfgUpdate('sl',this.value)"><span class="ro" id="sl-out">25</span></div></div>
+      <div><div class="cl">Budget ceiling</div><div class="rr"><input type="range" min="20" max="150" value="150" step="5" oninput="cfgUpdate('budget',this.value)"><span class="ro" id="budget-out">$150</span></div></div>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="ct-title"><i class="ti ti-terminal"></i> Railway backend endpoints</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--text2);line-height:2">
+      <code>GET /</code> &nbsp; Health check + status<br>
+      <code>GET /signals</code> &nbsp; Live ORB signals + news<br>
+      <code>GET /premarket</code> &nbsp; Pre-market brief<br>
+      <code>GET /news</code> &nbsp; News feed<br>
+      <code>GET /status</code> &nbsp; Scanner status<br>
+      <code>GET /scan?secret=KEY</code> &nbsp; Trigger manual scan<br>
+    </div>
+  </div>
+
+  <div class="cc">
+    <div class="ct-title"><i class="ti ti-key"></i> Free API keys (add in Railway Variables)</div>
+    <div style="font-family:var(--mono);font-size:12px;color:var(--text2);line-height:2">
+      <a href="https://alpaca.markets" target="_blank" style="color:var(--blue)">alpaca.markets</a> → <code>ALPACA_KEY</code> + <code>ALPACA_SECRET</code><br>
+      <a href="https://finnhub.io" target="_blank" style="color:var(--blue)">finnhub.io</a> → <code>FINNHUB_KEY</code><br>
+      <a href="https://newsapi.org" target="_blank" style="color:var(--blue)">newsapi.org</a> → <code>NEWSAPI_KEY</code><br>
+      <span style="color:var(--text3)">yfinance + SEC EDGAR — no key needed<br>
+      Set <code>SCAN_SECRET</code> to protect /scan endpoint</span>
+    </div>
+  </div>
+
+  <div class="sec">Activity log</div>
+  <div class="log" id="alog"><div class="ll"><span class="lt">--:--</span><span class="li">ORB Scout v3 ready — Railway edition</span></div></div>
+</div>
+
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+const S={
+  apiUrl: localStorage.getItem('orb-api-url')||'',
+  cfg:{tp:20,sl:25,budget:150},
+  journal: JSON.parse(localStorage.getItem('orb-journal-v3')||'[]'),
+  newsFilter:'all',
+  news:[],signals:[],budget:[],
+  approved:0,
+  polling:false,
+};
+
+// ── Init API URL ──
+function saveApiUrl(url){
+  const clean=url.trim().replace(/\/$/,'');
+  S.apiUrl=clean;
+  localStorage.setItem('orb-api-url',clean);
+  updateApiBanner();
+  if(clean) poll();
+}
+
+function updateApiBanner(){
+  const banner=document.getElementById('api-banner');
+  const input=document.getElementById('api-url-input');
+  if(input&&!input.value&&S.apiUrl) input.value=S.apiUrl;
+  if(S.apiUrl){
+    banner.className='api-cfg api-connected';
+    banner.querySelector('strong').textContent='Railway API connected';
+  } else {
+    banner.className='api-cfg';
+  }
+}
+
+// ── Clock ──
+function startClock(){
+  function tick(){
+    const now=new Date();
+    const et=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now);
+    document.getElementById('clk').textContent=et+' ET';
+    const[h,m]=et.split(':').map(Number),mins=h*60+m;
+    const open=mins>=570&&mins<960,pre=(mins>=240&&mins<570)||(mins>=960&&mins<1200);
+    document.getElementById('sdot').className='dot '+(open?'dot-g':pre?'dot-a':'dot-o');
+    document.getElementById('stxt').textContent=open?'Market open':pre?'Pre/post':'Closed';
+  }
+  tick();setInterval(tick,1000);
+  document.getElementById('clk').style.display='block';
+}
+
+// ── Tab ──
+function tab(name,el){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── Poll Railway API ──
+async function poll(){
+  if(!S.apiUrl){
+    log('No Railway URL set — go to Config tab','lw');
+    toast('Set your Railway URL in Config tab','ta');
+    return;
+  }
+  if(S.polling) return;
+  S.polling=true;
+  log('Polling Railway API...','li');
+
+  // ── Signals + News (main fetch — never let this block premarket) ──
+  try{
+    const r=await fetch(S.apiUrl+'/signals',{cache:'no-cache'});
+    if(r.ok){
+      const d=await r.json();
+      S.signals=d.signals||[];
+      S.budget=(d.budget_signals||[]).filter(s=>s.break_price<=S.cfg.budget);
+      S.news=d.news||[];
+      renderSignals();
+      renderBudget();
+      renderNews();
+      updateSigBar(d);
+      updateMetrics();
+      const bs=document.getElementById('b-sig');
+      if(S.signals.length){bs.style.display='inline';bs.textContent=S.signals.length;}else{bs.style.display='none';}
+      const bb=document.getElementById('b-bud');
+      if(S.budget.length){bb.style.display='inline';bb.textContent=S.budget.length;}else{bb.style.display='none';}
+      document.getElementById('b-news').style.display=S.news.length?'inline':'none';
+      log('Live data — '+S.signals.length+' signals · '+S.budget.length+' budget · '+S.news.length+' news','lok');
+      toast('Data refreshed','tg');
+    } else {
+      updateSigBarErr();
+      log('Signals endpoint returned '+r.status,'le');
+    }
+  } catch(e){
+    updateSigBarErr();
+    log('Cannot reach Railway: '+e.message+' — check URL in Config','le');
+  } finally {
+    // Always release polling lock after signals attempt
+    // regardless of what premarket does below
+    S.polling=false;
+  }
+
+  // ── Pre-market (separate fetch — 404 is expected outside 4:30am, never shows error) ──
+  try{
+    const r=await fetch(S.apiUrl+'/premarket',{cache:'no-cache'});
+    if(r.ok){
+      const pm=await r.json();
+      renderPremarket(pm);
+    } else if(r.status===404){
+      // Normal outside 4:30am — show friendly message, not an error
+      document.getElementById('pm-bar').className='live-bar lb-wait';
+      document.getElementById('pm-bar').querySelector('.lb-left').innerHTML='<i class="ti ti-clock"></i><span>Pre-market brief runs at 4:30 AM ET weekdays</span>';
+      document.getElementById('pm-con').innerHTML='<div class="empty"><i class="ti ti-sunrise"></i>Pre-market brief not generated yet.<br>Check back before market open at 4:30 AM ET.<br><br><span style="color:var(--text3)">Gap movers · earnings today · priority watchlist<br>will appear here automatically.</span></div>';
+    }
+  } catch(e){
+    log('Premarket fetch skipped: '+e.message,'li');
+  }
+}
+
+function updateSigBar(d){
+  const t=d.scanned_at?new Date(d.scanned_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})+' ET':'—';
+  ['sig-bar','bud-bar'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.className='live-bar lb-live';
+    el.querySelector('.lb-left').innerHTML='<i class="ti ti-circle-check"></i><span>Live — Railway backend</span>';
+  });
+  document.getElementById('sig-bar-time').textContent='Scanned: '+t;
+  document.getElementById('bud-bar-time').textContent='Scanned: '+t;
+  document.getElementById('news-upd').textContent='Refreshed: '+t;
+}
+function updateSigBarErr(){
+  ['sig-bar','bud-bar'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.className='live-bar lb-err';
+    el.querySelector('.lb-left').innerHTML='<i class="ti ti-wifi-off"></i><span>Cannot reach Railway — check URL in Config</span>';
+  });
+}
+
+// ── Score helpers ──
+function sc(v){return v>=70?'fg':v>=45?'fa':'fr';}
+function tc(v){return v>=70?'cg':v>=45?'ca':'cr';}
+
+// ── Mini candle SVG ──
+function svg(dir,color){
+  const N=18,H=50,W=N*15;let cc=[],b=100;
+  for(let i=0;i<N;i++){
+    const bull=i<8?Math.random()>.45:(dir==='up'?Math.random()>.38:Math.random()<.38);
+    const bd=1.5+Math.random()*5,wH=.5+Math.random()*2,wL=.5+Math.random()*2;
+    cc.push({o:b,c:bull?b+bd:b-bd,h:b+bd+wH,l:b-wL,bull});
+    b=bull?b+bd*.35:b-bd*.35;
+  }
+  const all=cc.flatMap(c=>[c.h,c.l]),mn=Math.min(...all)-1,mx=Math.max(...all)+1,rng=mx-mn;
+  const ty=v=>((1-(v-mn)/rng)*H).toFixed(1);
+  const bc=color||'#22c55e',dc='#ef4444';
+  let s='';
+  const ohY=ty(cc[0].h+(mx-cc[0].h)*.3),olY=ty(cc[0].l+(cc[0].l-mn)*.2);
+  cc.forEach((c,i)=>{
+    const x=i*15+7.5,top=Math.min(ty(c.o),ty(c.c)),bot=Math.max(ty(c.o),ty(c.c)),bh=Math.max(2,bot-top),col=c.bull?bc:dc;
+    s+=`<line x1="${x}" y1="${ty(c.h)}" x2="${x}" y2="${ty(c.l)}" stroke="${col}" stroke-width="1.2"/>`;
+    s+=`<rect x="${x-4}" y="${top}" width="8" height="${bh}" fill="${col}" rx="1"/>`;
+  });
+  s+=`<line x1="0" y1="${ohY}" x2="${W}" y2="${ohY}" stroke="#f59e0b" stroke-width=".8" stroke-dasharray="3,2"/>`;
+  s+=`<line x1="0" y1="${olY}" x2="${W}" y2="${olY}" stroke="#f59e0b" stroke-width=".8" stroke-dasharray="3,2"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;display:block;margin:8px 0" aria-hidden="true">${s}</svg>`;
+}
+
+// ── Signal card ──
+function card(sig,idx,isB){
+  const up=sig.direction==='up',brk=sig.break_price||sig.price||0;
+  const tgt=(brk+(up?S.cfg.tp:-S.cfg.tp)).toFixed(2);
+  const sl=(brk*(up?(1-S.cfg.sl/100):(1+S.cfg.sl/100))).toFixed(2);
+  const score=sig.score||50;
+  const newsHtml=(sig.news&&sig.news.length)?`
+    <div class="sig-news-wrap"><div class="sig-news-ttl">Linked news (${sig.news.length})</div>
+    ${sig.news.map(n=>`<div class="sig-news-row"><div class="sig-news-dot" style="background:${n.sentiment==='bull'?'var(--green)':n.sentiment==='bear'?'var(--red)':'var(--text3)'}"></div><div class="sig-news-hl">${n.headline}</div></div>`).join('')}</div>`:'';
+  return`<div class="sc ${isB?'budget':up?'long':'short'}" id="${isB?'b':'s'}-${idx}">
+  <div class="sc-hd">
+    <div class="sc-top">
+      <div><div class="sc-sym">${sig.symbol}</div><div class="sc-nm">${sig.name||sig.symbol} · ${sig.sector||'—'}</div></div>
+      <div class="sc-px"><div class="sc-pv" style="color:${isB?'var(--purple)':up?'var(--green)':'var(--red)'}">$${brk.toFixed(2)}</div><div class="sc-pl">break · gap ${sig.gap||'N/A'}</div></div>
+    </div>
+    <div class="bgs">
+      ${isB?`<span class="bg bg-p">≤$${S.cfg.budget}</span>`:''}
+      <span class="bg ${up?'bg-g':'bg-r'}">${up?'▲ LONG':'▼ SHORT'}</span>
+      <span class="bg bg-b">ORB live</span>
+      <span class="bg bg-x">${sig.sector||'—'}</span>
+      ${sig.iv>60?'<span class="bg bg-a">IV elevated</span>':''}
+      ${sig.news&&sig.news.length?`<span class="bg bg-b"><i class="ti ti-news"></i>${sig.news.length}</span>`:''}
+    </div>
+  </div>
+  <div class="sc-bd">
+    ${svg(sig.direction,isB?'#a855f7':null)}
+    <div class="sr"><div class="sl">Signal</div><div class="sb"><div class="sf ${isB?'fp':sc(score)}" style="width:${score}%"></div></div><div class="sn ${isB?'cp':tc(score)}">${score}</div></div>
+    <div class="sr"><div class="sl">Volume</div><div class="sb"><div class="sf ${sc(Math.min(100,sig.vol_ratio/4*100))}" style="width:${Math.min(100,sig.vol_ratio/4*100)}%"></div></div><div class="sn">${sig.vol_ratio}x</div></div>
+    <div class="sr"><div class="sl">Rel str</div><div class="sb"><div class="sf ${sc(sig.rs)}" style="width:${sig.rs}%"></div></div><div class="sn ${tc(sig.rs)}">${sig.rs}</div></div>
+    <div class="divider"></div>
+    <div class="sg">
+      <div><div class="sf-l">ORB High</div><div class="sf-v">$${(sig.orb_high||0).toFixed(2)}</div></div>
+      <div><div class="sf-l">ORB Low</div><div class="sf-v">$${(sig.orb_low||0).toFixed(2)}</div></div>
+      <div><div class="sf-l">Target</div><div class="sf-v cg">$${tgt}</div><div class="sf-s">+${S.cfg.tp} pts</div></div>
+      <div><div class="sf-l">Stop</div><div class="sf-v cr">$${sl}</div><div class="sf-s">-${S.cfg.sl}%</div></div>
+      <div><div class="sf-l">ATR (14)</div><div class="sf-v">$${(sig.atr||0).toFixed(1)}</div></div>
+      <div><div class="sf-l">IV</div><div class="sf-v ${sig.iv>60?'ca':'ct'}">${sig.iv||35}%</div></div>
+      <div><div class="sf-l">ORB range</div><div class="sf-v">$${(sig.orb_range||0).toFixed(2)}</div></div>
+      <div><div class="sf-l">Trend</div><div class="sf-v">${sig.trend||'—'}</div></div>
+    </div>
+    <div class="cks">
+      <span class="ck ok"><i class="ti ti-check"></i> 15m ORB set</span>
+      <span class="ck ok"><i class="ti ti-check"></i> 1m confirmed</span>
+      <span class="ck ok"><i class="ti ti-check"></i> Vol ${sig.vol_ratio}x</span>
+      <span class="ck ok"><i class="ti ti-check"></i> Trend aligned</span>
+      <span class="ck ${sig.iv>60?'wn':'ok'}"><i class="ti ti-${sig.iv>60?'alert-triangle':'check'}"></i> IV ${sig.iv>60?'elevated':'normal'}</span>
+    </div>
+    ${sig.news_boost?`<div class="boost"><i class="ti ti-trending-up"></i> ${sig.news_boost}</div>`:''}
+    ${sig.news_warning?`<div class="warn"><i class="ti ti-alert-triangle"></i> ${sig.news_warning}</div>`:''}
+    ${newsHtml}
+    <div class="ins"><strong>In SoFi:</strong> Search <strong>${sig.symbol}</strong> → ${up?'Buy shares or call':'Buy put or short'} at/near <strong>$${brk.toFixed(2)}</strong> → stop <strong>$${sl}</strong> → target <strong>$${tgt}</strong>. Set SoFi price alert at $${tgt}.</div>
+  </div>
+  <div class="act">
+    <button class="btn ${isB?'btn-p':'btn-g'}" onclick="approve(${idx},${isB})"><i class="ti ti-check"></i> Approve</button>
+    <button class="btn btn-r btn-sm" onclick="skip(${idx},${isB})"><i class="ti ti-x"></i> Skip</button>
+    <button class="btn btn-x btn-sm" onclick="showOpt(${idx},${isB})"><i class="ti ti-trending-up"></i> Options</button>
+  </div>
+</div>`;
+}
+
+function renderSignals(){
+  const c=document.getElementById('sig-con');
+  if(!S.signals.length){c.innerHTML='<div class="empty"><i class="ti ti-radar"></i>No ORB signals in current scan.<br>Railway scans at 9:46 AM ET automatically.</div>';return;}
+  c.innerHTML=S.signals.map((s,i)=>card(s,i,false)).join('');
+}
+function renderBudget(){
+  const c=document.getElementById('bud-con');
+  document.getElementById('bp-lbl').textContent=S.cfg.budget;
+  if(!S.budget.length){c.innerHTML='<div class="empty"><i class="ti ti-coin"></i>No budget signals under $'+S.cfg.budget+' in current scan.</div>';return;}
+  c.innerHTML=S.budget.map((s,i)=>card(s,i,true)).join('');
+}
+
+function approve(idx,isB){
+  const sig=isB?S.budget[idx]:S.signals[idx];if(!sig)return;
+  const el=document.getElementById((isB?'b':'s')+'-'+idx);
+  if(el){el.style.opacity='.5';el.style.pointerEvents='none';
+    const n=document.createElement('div');n.style.cssText='padding:8px 13px;background:var(--green-dim);border-top:1px solid var(--green-border);font-family:var(--mono);font-size:11px;color:var(--green)';
+    n.innerHTML='✓ Approved — open SoFi → '+sig.symbol;el.appendChild(n);}
+  renderOptBrief(sig);S.approved++;updateMetrics();
+  log('✓ Approved: '+sig.symbol+' '+(sig.direction==='up'?'LONG':'SHORT')+' @ $'+sig.break_price,'lok');
+  toast('Approved '+sig.symbol+' — open SoFi','tg');
+}
+function skip(idx,isB){
+  const el=document.getElementById((isB?'b':'s')+'-'+idx);
+  if(el){el.style.opacity='0';el.style.transform='translateX(18px)';el.style.transition='all .2s';setTimeout(()=>el.remove(),200);}
+}
+function showOpt(idx,isB){
+  const sig=isB?S.budget[idx]:S.signals[idx];
+  if(sig){renderOptBrief(sig);document.querySelectorAll('.nav-tab')[4].click();}
+}
+
+function renderOptBrief(sig){
+  const up=sig.direction==='up',brk=sig.break_price||sig.price;
+  const s1=Math.round(brk/5)*5+(up?5:-5),s2=Math.round(brk/5)*5+(up?10:-10);
+  const p1=(brk*.016).toFixed(2),p2=(brk*.009).toFixed(2);
+  const tgt=(brk+(up?S.cfg.tp:-S.cfg.tp)).toFixed(2),sl=(brk*(up?(1-S.cfg.sl/100):(1+S.cfg.sl/100))).toFixed(2);
+  document.getElementById('opt-con').innerHTML=`
+  <div class="sc ${up?'long':'short'}">
+    <div class="sc-hd"><div class="sc-top"><div><div class="sc-sym">${sig.symbol}</div><div class="sc-nm">${up?'Call':'Put'} options brief — live data</div></div>
+    <div class="bgs" style="flex-direction:column;align-items:flex-end"><span class="bg ${up?'bg-g':'bg-r'}">${up?'Calls':'Puts'}</span><span class="bg bg-a" style="margin-top:4px">IV ${sig.iv||35}% · ${sig.opt_vol||'—'}</span></div></div></div>
+    <div class="sc-bd">
+      <div class="ins" style="margin-bottom:10px">${(sig.iv||35)>55?'IV elevated — consider debit spread to reduce premium cost.':'IV normal — straight calls/puts are fine.'}</div>
+      <div class="og">
+        <div class="oc"><div class="oh">Aggressive — 7 DTE</div>
+          <div class="or"><span class="ok">Type</span><span class="ov">${up?'Call':'Put'} · OTM</span></div>
+          <div class="or"><span class="ok">Strike</span><span class="ov">$${s1}</span></div>
+          <div class="or"><span class="ok">Expiry</span><span class="ov">~7 days</span></div>
+          <div class="or"><span class="ok">Est. premium</span><span class="ov">~$${p1}</span></div>
+          <div class="or"><span class="ok">Max risk</span><span class="ov cr">100% prem.</span></div>
+        </div>
+        <div class="oc"><div class="oh">Swing — 14 DTE</div>
+          <div class="or"><span class="ok">Type</span><span class="ov">${up?'Call':'Put'} · slight OTM</span></div>
+          <div class="or"><span class="ok">Strike</span><span class="ov">$${s2}</span></div>
+          <div class="or"><span class="ok">Expiry</span><span class="ov">~14 days</span></div>
+          <div class="or"><span class="ok">Est. premium</span><span class="ov">~$${p2}</span></div>
+          <div class="or"><span class="ok">Max risk</span><span class="ov cr">100% prem.</span></div>
+        </div>
+      </div>
+      <div class="ins"><strong>In SoFi:</strong> ${sig.symbol} → Options → ${up?'Calls':'Puts'} → strike $${s1} or $${s2} → check bid/ask spread → Buy to open. Alert at $${tgt}.</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text3);line-height:1.7">⚠ Options can go to zero. Premiums are estimates — verify live bid/ask in SoFi.</div>
+    </div>
+  </div>`;
+}
+
+// ── Pre-market ──
+function renderPremarket(pm){
+  document.getElementById('pm-summary').style.display='block';
+  document.getElementById('pm-summary').textContent=pm.summary||'';
+  const bar=document.getElementById('pm-bar');
+  bar.className='live-bar lb-live';
+  bar.querySelector('.lb-left').innerHTML='<i class="ti ti-sunrise"></i><span>Pre-market brief — LIVE</span>';
+  document.getElementById('pm-bar-time').textContent=pm.generated_at?'Generated: '+new Date(pm.generated_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})+' ET':'—';
+  let html='';
+  if(pm.priority_watch&&pm.priority_watch.length){
+    html+='<div class="sec" style="margin-top:0">Priority watchlist for today</div>';
+    html+=pm.priority_watch.map(p=>`<div class="pm-card" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div><span style="font-size:18px;font-weight:700">${p.symbol}</span><div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:1px">${p.reason}</div></div>
+      <div style="text-align:right"><div style="font-size:16px;font-weight:700;color:${p.gap_pct>=0?'var(--green)':'var(--red)'}">${p.gap_pct>=0?'+':''}${p.gap_pct.toFixed(1)}%</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">pre-mkt gap</div></div>
+      <div style="background:var(--bg3);border-radius:var(--r);padding:5px 11px;font-family:var(--mono);font-size:12px"><span style="color:var(--text3)">opp </span><span style="color:var(--amber);font-weight:600">${p.opp_score}</span></div>
+    </div>`).join('');
+  }
+  if(pm.gap_movers&&pm.gap_movers.length){
+    html+='<div class="sec">Pre-market gap movers</div><div class="pm-card">';
+    html+=pm.gap_movers.slice(0,10).map(g=>`<div class="gap-row"><span style="font-weight:600;min-width:52px">${g.symbol}</span><span style="color:var(--text2)">$${g.prev_close} → $${g.pre_price}</span><span style="color:${g.direction==='up'?'var(--green)':'var(--red)'};font-weight:600">${g.gap_pct>=0?'+':''}${g.gap_pct.toFixed(2)}%</span></div>`).join('');
+    html+='</div>';
+  }
+  if(pm.earnings_today&&pm.earnings_today.length){
+    html+='<div class="sec">Earnings today</div><div class="pm-card">';
+    html+=pm.earnings_today.map(e=>`<div class="earn-row"><span style="font-weight:600;min-width:52px">${e.symbol}</span><span style="color:var(--text3)">${e.time==='bmo'?'Before open':'After close'}</span><span style="color:var(--text2)">EPS est. ${e.eps_est||'—'}</span></div>`).join('');
+    html+='</div>';
+  }
+  document.getElementById('pm-con').innerHTML=html||'<div class="empty"><i class="ti ti-sunrise"></i>No pre-market data yet</div>';
+}
+
+// ── News ──
+function filterNews(cat,btn){
+  S.newsFilter=cat;document.querySelectorAll('.nfb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderNews();
+}
+function renderNews(){
+  const items=S.newsFilter==='all'?S.news:S.news.filter(n=>n.category===S.newsFilter);
+  const c=document.getElementById('news-con');
+  if(!items.length){c.innerHTML='<div class="empty"><i class="ti ti-news"></i>No articles in this category</div>';return;}
+  const sc2={bull:'s-bull',bear:'s-bear',neut:'s-neut',break:'s-break'};
+  const sl={bull:'Bullish',bear:'Bearish',neut:'Neutral',break:'Breaking'};
+  c.innerHTML=items.slice(0,50).map(n=>`
+  <a class="ni ${n.sentiment==='break'||n.category==='breaking'?'br':n.sentiment==='bull'?'bl':n.sentiment==='bear'?'be':n.category==='press'?'bp':''}" href="${n.url||'#'}" target="_blank" rel="noopener">
+    <div class="n-meta"><span class="n-src">${n.source}</span><span class="n-src">· ${(n.time||'').slice(0,16)}</span>${n.category==='breaking'||n.sentiment==='break'?'<span class="bg bg-a" style="font-size:10px">⚡ Breaking</span>':''}<span class="sent ${sc2[n.sentiment]||'s-neut'}">${sl[n.sentiment]||'Neutral'}</span></div>
+    <div class="n-hl">${n.headline}</div>
+    ${n.summary?`<div class="n-sm">${n.summary.slice(0,200)}${n.summary.length>200?'...':''}</div>`:''}
+    <div class="n-tks">${(n.tickers||[]).filter(Boolean).map(t=>`<span class="n-tk">${t}</span>`).join('')}</div>
+  </a>`).join('');
+}
+
+// ── Metrics ──
+function updateMetrics(){
+  document.getElementById('m-sc').textContent=S.signals.length+S.budget.length>0?S.signals.length+S.budget.length:'—';
+  document.getElementById('m-si').textContent=S.signals.length||'—';
+  document.getElementById('m-ap').textContent=S.approved;
+  const w=S.journal.filter(j=>j.pnl>0).length,t=S.journal.length;
+  document.getElementById('m-wr').textContent=t?Math.round(w/t*100)+'%':'—';
+}
+
+// ── Config ──
+function cfgUpdate(k,v){
+  S.cfg[k]=Number(v);
+  const m={tp:['tp-out','tp-lbl'],sl:['sl-out','sl-lbl'],budget:['budget-out']};
+  (m[k]||[]).forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=(k==='budget'?'$':'')+v;});
+  if(k==='budget'){document.getElementById('bp-lbl').textContent=v;S.budget=S.budget.filter(s=>s.break_price<=Number(v));renderBudget();}
+}
+
+// ── Journal ──
+function logTrade(){
+  const sym=(document.getElementById('j-sym').value||'').trim().toUpperCase();
+  const type=document.getElementById('j-type').value;
+  const ent=parseFloat(document.getElementById('j-ent').value);
+  const ext=parseFloat(document.getElementById('j-ext').value);
+  const qty=parseFloat(document.getElementById('j-qty').value)||1;
+  const notes=(document.getElementById('j-nt').value||'').trim();
+  const msg=document.getElementById('j-msg');
+  if(!sym||isNaN(ent)||isNaN(ext)){msg.textContent='Fill ticker, entry & exit.';return;}
+  const isL=type==='stock-long'||type==='call',isO=type==='call'||type==='put';
+  const pnl=(isL?ext-ent:ent-ext)*qty*(isO?100:1);
+  S.journal.unshift({sym,type,entry:ent,exit:ext,qty,pnl,notes,time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true})});
+  try{localStorage.setItem('orb-journal-v3',JSON.stringify(S.journal));}catch(e){}
+  ['j-sym','j-ent','j-ext','j-qty','j-nt'].forEach(id=>{document.getElementById(id).value='';});
+  msg.textContent='Logged!';setTimeout(()=>{msg.textContent='';},2000);
+  renderJournal();updateMetrics();
+  log((pnl>=0?'✓':'✗')+' '+sym+' '+(pnl>=0?'+':'')+' $'+pnl.toFixed(2),pnl>=0?'lok':'le');
+  toast(sym+' logged '+(pnl>=0?'+':'')+' $'+pnl.toFixed(2),pnl>=0?'tg':'');
+}
+function renderJournal(){
+  const w=S.journal.filter(j=>j.pnl>0),l=S.journal.filter(j=>j.pnl<=0);
+  document.getElementById('j-tot').textContent=S.journal.length;
+  document.getElementById('j-win').textContent=w.length;
+  document.getElementById('j-los').textContent=l.length;
+  const ag=w.length?w.reduce((a,j)=>a+j.pnl,0)/w.length:0;
+  const al=l.length?l.reduce((a,j)=>a+j.pnl,0)/l.length:0;
+  document.getElementById('j-ag').textContent=w.length?'+$'+ag.toFixed(2):'—';
+  document.getElementById('j-al').textContent=l.length?'-$'+Math.abs(al).toFixed(2):'—';
+  const el=document.getElementById('hist-con');
+  if(!S.journal.length){el.innerHTML='<div class="empty"><i class="ti ti-notebook"></i>No trades logged yet</div>';return;}
+  const tl={'stock-long':'Stock L','stock-short':'Stock S','call':'Call','put':'Put'};
+  el.innerHTML=S.journal.map(j=>`<div class="hr">
+    <div><div style="font-weight:700;font-size:13px" class="${j.pnl>=0?'cg':'cr'}">${j.sym}</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3)">${tl[j.type]||j.type}</div></div>
+    <div style="flex:1;font-family:var(--mono);font-size:11px;color:var(--text3)">${j.time}${j.notes?' · '+j.notes:''}</div>
+    <div><div style="font-family:var(--mono);font-size:13px;font-weight:600" class="${j.pnl>=0?'cg':'cr'}">${j.pnl>=0?'+':'-'}$${Math.abs(j.pnl).toFixed(2)}</div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">$${j.entry}→$${j.exit}</div></div>
+  </div>`).join('');
+}
+
+// ── Log & Toast ──
+function log(msg,cls){
+  const el=document.getElementById('alog');
+  const now=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const d=document.createElement('div');d.className='ll';
+  d.innerHTML=`<span class="lt">${now}</span><span class="${cls||'li'}">${msg}</span>`;
+  el.prepend(d);while(el.children.length>120)el.removeChild(el.lastChild);
+}
+let tt;
+function toast(msg,cls){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show'+(cls?' '+cls:'');
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ── Init ──
+updateApiBanner();
+renderJournal();
+updateMetrics();
+startClock();
+if(S.apiUrl){
+  poll();
+  setInterval(poll,60000);
+} else {
+  log('No Railway URL — open Config tab and paste your Railway URL','lw');
+  toast('Open Config tab → paste your Railway URL','ta');
+}
+</script>
+</body>
+</html>
